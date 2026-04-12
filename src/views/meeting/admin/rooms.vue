@@ -49,25 +49,42 @@
     </div>
 
     <!-- 新增/编辑弹窗 -->
-    <t-dialog
-      v-model:visible="showDialog"
-      :title="editRoom ? '编辑会议室' : '新增会议室'"
-      :confirm-btn="{ content: '保存', theme: 'primary' }"
-      @confirm="handleSave"
-    >
-      <div class="p-[20px]">
-        <t-cell-group theme="card">
-          <t-cell><t-input v-model="form.name" label="名称" placeholder="请输入会议室名称" :bordered="false" /></t-cell>
-          <t-cell><t-input v-model.number="form.capacity" label="容量" placeholder="请输入容纳人数" type="number" :bordered="false" /></t-cell>
-          <t-cell><t-input v-model="form.equipmentStr" label="设备" placeholder="用逗号分隔，如：投影仪,白板" :bordered="false" /></t-cell>
-        </t-cell-group>
+    <t-popup v-model="showDialog" placement="bottom" round>
+      <div class="bg-white rounded-t-[32px] overflow-hidden">
+        <!-- 弹窗头部 -->
+        <div class="flex items-center justify-between p-[32px] bg-gradient-to-br from-[#0052D9] to-[#266FE8]">
+          <div class="text-[32px] font-bold text-white">{{ editRoom ? '编辑会议室' : '新增会议室' }}</div>
+          <div class="w-[48px] h-[48px] bg-white/20 rounded-full flex items-center justify-center" @click="showDialog = false">
+            <CloseIcon class="text-[24px] text-white" />
+          </div>
+        </div>
+        <!-- 弹窗内容 -->
+        <div class="p-[32px]">
+          <div class="mb-[24px]">
+            <div class="text-[26px] text-[#666] mb-[12px]">会议室名称</div>
+            <t-input v-model="form.name" placeholder="请输入会议室名称" :bordered="false" class="bg-[#f5f7fa] rounded-[16px] px-[24px] py-[20px] text-[28px]" />
+          </div>
+          <div class="mb-[24px]">
+            <div class="text-[26px] text-[#666] mb-[12px]">容纳人数</div>
+            <t-input v-model.number="form.capacity" placeholder="请输入容纳人数" type="number" :bordered="false" class="bg-[#f5f7fa] rounded-[16px] px-[24px] py-[20px] text-[28px]" />
+          </div>
+          <div class="mb-[32px]">
+            <div class="text-[26px] text-[#666] mb-[12px]">设备配置</div>
+            <t-input v-model="form.equipmentStr" placeholder="用逗号分隔，如：投影仪,白板" :bordered="false" class="bg-[#f5f7fa] rounded-[16px] px-[24px] py-[20px] text-[28px]" />
+          </div>
+          <!-- 操作按钮 -->
+          <div class="flex gap-[16px]">
+            <t-button theme="default" block class="h-[80px] text-[28px] rounded-[16px]" @click="showDialog = false">取消</t-button>
+            <t-button theme="primary" block class="h-[80px] text-[28px] rounded-[16px] !bg-gradient-to-br !from-[#0052D9] !to-[#266FE8]" @click="handleSave">保存</t-button>
+          </div>
+        </div>
       </div>
-    </t-dialog>
+    </t-popup>
   </Root>
 </template>
 
 <script setup>
-import { AddIcon, FolderIcon, HomeIcon, UserIcon } from "tdesign-icons-vue-next"
+import { AddIcon, FolderIcon, HomeIcon, UserIcon, CloseIcon } from "tdesign-icons-vue-next"
 import { meetingRoomRepo } from "@/db/repositories"
 import { showToast } from "@/utils/common/tools"
 

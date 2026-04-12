@@ -65,9 +65,10 @@
 
 <script setup>
 import { CalendarIcon, ChevronRightIcon } from "tdesign-icons-vue-next"
-import { reservationRepo } from "@/db/repositories"
+import { reservationRepo, userPreferenceRepo } from "@/db/repositories"
 import { useUserStore } from "@/store"
 import { showToast, showErrorDialog } from "@/utils/common/tools"
+import dayjs from "dayjs"
 import { useRoute, useRouter } from "vue-router"
 
 const route = useRoute()
@@ -117,6 +118,20 @@ const handleSubmit = async () => {
       return
     }
     await reservationRepo.create({ roomId, userId: userStore.userId, subject: formData.subject, start, end, attendees: [], createdAt: new Date() })
+
+    // 记录用户偏好（智能推荐用）
+    const bookingDate = dayjs(formData.date)
+    await userPreferenceRepo.recordRoomUsage(userStore.userId, roomId)
+    await userPreferenceRepo.recordTimeUsage(userStore.userId, bookingDate.day(), formData.startTime)
+    await userPreferenceRepo.saveLastBookingInfo(userStore.userId, {
+      roomId,
+      roomName,
+      subject: formData.subject,
+      date: formData.date,
+      startTime: formData.startTime,
+      endTime: formData.endTime
+    })
+
     showToast('预定成功')
     router.back()
   } catch (error) {

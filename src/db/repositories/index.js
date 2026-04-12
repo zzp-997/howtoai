@@ -14,7 +14,7 @@ export { documentRepo } from './documentRepo';
 export { documentCategoryRepo } from './documentCategoryRepo';
 export { attendanceConfigRepo } from './attendanceConfigRepo';
 export { todoRepo } from './todoRepo';
-export { announcementRepo } from './announcementRepo';
+export { announcementRepo, ANNOUNCEMENT_CATEGORIES } from './announcementRepo';
 
 // 扩展四期：智能功能相关
 export { userPreferenceRepo } from './userPreferenceRepo';

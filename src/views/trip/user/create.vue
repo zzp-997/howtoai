@@ -1,8 +1,90 @@
 <template>
-  <Root title="新建差旅申请" back-url="/user/trip">
+  <Root :title="isEditMode ? '编辑差旅申请' : '新建差旅申请'" back-url="/user/trip">
     <div class="min-h-screen bg-[#f5f7fa] pb-[160px]">
       <!-- 表单区域 -->
       <div class="p-[24px] px-[32px]">
+        <!-- 快捷模板 -->
+        <div v-if="!isEditMode && tripTemplates.length > 0" class="bg-white rounded-[24px] mb-[16px] overflow-hidden shadow-sm">
+          <div class="p-[24px] pb-[20px] border-b border-[#f0f0f0]">
+            <div class="flex items-center justify-between">
+              <div class="text-[28px] font-semibold text-[#333]">快速模板</div>
+              <div class="text-[24px] text-[#0052D9]" @click="showTemplateManager = true">管理模板</div>
+            </div>
+          </div>
+          <div class="p-[20px] pt-[16px] flex gap-[12px] overflow-x-auto [scrollbar-width:none]">
+            <div
+              v-for="tpl in tripTemplates"
+              :key="tpl.id"
+              class="flex-shrink-0 px-[20px] py-[14px] bg-gradient-to-br from-[#0052D9]/10 to-[#266FE8]/10 rounded-[16px] border border-[#0052D9]/20"
+              @click="applyTemplate(tpl)"
+            >
+              <div class="text-[26px] text-[#0052D9] font-medium">{{ tpl.name }}</div>
+              <div class="text-[22px] text-[#999] mt-[4px]">{{ tpl.destination }}</div>
+            </div>
+            <div
+              class="flex-shrink-0 px-[20px] py-[14px] bg-[#f5f7fa] rounded-[16px] border border-dashed border-[#ddd]"
+              @click="showSaveTemplate = true"
+            >
+              <div class="text-[26px] text-[#999]">+ 保存为模板</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 智能目的地推荐 -->
+        <div class="bg-white rounded-[24px] mb-[16px] overflow-hidden shadow-sm">
+          <div class="p-[24px] pb-[20px] border-b border-[#f0f0f0]">
+            <div class="flex items-center gap-[12px]">
+              <div class="w-[40px] h-[40px] bg-gradient-to-br from-[#00A870] to-[#2BA471] rounded-[10px] flex items-center justify-center">
+                <LightbulbIcon class="text-[22px] text-white" />
+              </div>
+              <div>
+                <div class="text-[28px] font-semibold text-[#333]">智能推荐</div>
+                <div class="text-[22px] text-[#999]">选择目的地获取费用预估</div>
+              </div>
+            </div>
+          </div>
+          <div class="p-[20px] pt-[16px]">
+            <!-- 目的地选择 -->
+            <div class="mb-[20px]">
+              <div class="text-[26px] text-[#666] mb-[12px]">目的地城市</div>
+              <div class="flex flex-wrap gap-[10px]">
+                <div
+                  v-for="city in popularCities"
+                  :key="city.name"
+                  :class="['px-[20px] py-[12px] rounded-[14px] text-[24px] cursor-pointer transition-all',
+                    form.destination === city.name ? 'bg-gradient-to-br from-[#0052D9] to-[#266FE8] text-white' : 'bg-[#f5f7fa] text-[#666]']"
+                  @click="selectCity(city)"
+                >
+                  {{ city.name }}
+                </div>
+              </div>
+              <div class="mt-[16px]">
+                <t-input v-model="form.destination" placeholder="或手动输入其他城市" :bordered="false" class="bg-[#f5f7fa] rounded-[12px] px-[20px] py-[16px]" @change="onDestinationChange" />
+              </div>
+            </div>
+
+            <!-- 城市信息卡片 -->
+            <div v-if="selectedCityInfo" class="p-[20px] bg-gradient-to-br from-[#00A870]/10 to-[#2BA471]/10 rounded-[16px] border border-[#00A870]/20">
+              <div class="flex items-center gap-[10px] mb-[12px]">
+                <LocationIcon class="text-[28px] text-[#00A870]" />
+                <span class="text-[28px] font-semibold text-[#333]">{{ selectedCityInfo.name }}</span>
+                <span class="text-[22px] text-[#999]">{{ selectedCityInfo.region }}</span>
+              </div>
+              <div class="text-[24px] text-[#666] mb-[12px]">{{ selectedCityInfo.weatherTips }}</div>
+              <div class="flex gap-[20px]">
+                <div class="flex items-center gap-[8px]">
+                  <span class="text-[22px] text-[#999]">预估交通：</span>
+                  <span class="text-[26px] font-semibold text-[#00A870]">¥{{ costEstimate.transportFee.min }}-{{ costEstimate.transportFee.max }}</span>
+                </div>
+                <div class="flex items-center gap-[8px]">
+                  <span class="text-[22px] text-[#999]">预估住宿：</span>
+                  <span class="text-[26px] font-semibold text-[#00A870]">¥{{ costEstimate.accommodationFee.min }}-{{ costEstimate.accommodationFee.max }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 基本信息 -->
         <div class="bg-white rounded-[24px] mb-[16px] overflow-hidden shadow-sm">
           <div class="p-[24px] pb-[20px] border-b border-[#f0f0f0]">
@@ -13,11 +95,6 @@
             <div class="mb-[28px]">
               <div class="text-[26px] text-[#666] mb-[12px]">出差事由</div>
               <t-input v-model="form.reason" placeholder="请输入出差事由" :bordered="false" class="bg-[#f5f7fa] rounded-[12px] px-[20px] py-[16px]" />
-            </div>
-            <!-- 目的地 -->
-            <div class="mb-[28px]">
-              <div class="text-[26px] text-[#666] mb-[12px]">目的地</div>
-              <t-input v-model="form.destination" placeholder="请输入目的地" :bordered="false" class="bg-[#f5f7fa] rounded-[12px] px-[20px] py-[16px]" />
             </div>
             <!-- 日期选择 -->
             <div class="flex gap-[16px]">
@@ -36,13 +113,20 @@
                 </div>
               </div>
             </div>
+            <!-- 出差天数 -->
+            <div v-if="tripDays > 0" class="mt-[16px] text-center py-[12px] bg-[#0052D9]/10 rounded-[12px]">
+              <span class="text-[26px] text-[#0052D9]">共 {{ tripDays }} 天</span>
+            </div>
           </div>
         </div>
 
         <!-- 预估费用 -->
         <div class="bg-white rounded-[24px] mb-[16px] shadow-sm">
           <div class="p-[24px] pb-[20px] border-b border-[#f0f0f0]">
-            <div class="text-[28px] font-semibold text-[#333]">预估费用</div>
+            <div class="flex items-center justify-between">
+              <div class="text-[28px] font-semibold text-[#333]">预估费用</div>
+              <div v-if="costEstimate" class="text-[24px] text-[#00A870]" @click="applyEstimate">使用推荐值</div>
+            </div>
           </div>
           <div class="p-[24px] pt-[20px]">
             <!-- 交通费 -->
@@ -90,23 +174,190 @@
     <t-popup v-model="showEndPicker" placement="bottom" round>
       <t-date-time-picker mode="date" format="YYYY-MM-DD" title="选择结束日期" @confirm="v => { form.endDate = v; showEndPicker = false }" @cancel="showEndPicker = false" />
     </t-popup>
+
+    <!-- 保存为模板弹窗 -->
+    <t-popup v-model="showSaveTemplate" placement="bottom" round>
+      <div class="bg-white rounded-t-[24px] p-[32px]">
+        <div class="text-[32px] font-semibold text-[#333] mb-[24px]">保存为模板</div>
+        <div class="mb-[24px]">
+          <div class="text-[26px] text-[#666] mb-[12px]">模板名称</div>
+          <t-input v-model="templateName" placeholder="如：上海总部出差" :bordered="false" class="bg-[#f5f7fa] rounded-[12px] px-[20px] py-[16px]" />
+        </div>
+        <div class="flex gap-[16px]">
+          <t-button theme="default" class="flex-1 h-[80px] text-[28px] rounded-[14px]" @click="showSaveTemplate = false">取消</t-button>
+          <t-button theme="primary" class="flex-1 h-[80px] text-[28px] rounded-[14px]" @click="saveAsTemplate">保存</t-button>
+        </div>
+      </div>
+    </t-popup>
+
+    <!-- 模板管理弹窗 -->
+    <t-popup v-model="showTemplateManager" placement="bottom" round>
+      <div class="bg-white rounded-t-[24px] p-[32px] max-h-[60vh] overflow-y-auto">
+        <div class="text-[32px] font-semibold text-[#333] mb-[24px]">管理模板</div>
+        <div v-if="tripTemplates.length === 0" class="text-center py-[40px] text-[#999]">暂无保存的模板</div>
+        <div v-for="tpl in tripTemplates" :key="tpl.id" class="flex items-center justify-between p-[20px] bg-[#f5f7fa] rounded-[16px] mb-[12px]">
+          <div>
+            <div class="text-[28px] font-medium text-[#333]">{{ tpl.name }}</div>
+            <div class="text-[24px] text-[#999]">{{ tpl.destination }}</div>
+          </div>
+          <div class="w-[48px] h-[48px] flex items-center justify-center" @click="deleteTemplate(tpl.id)">
+            <DeleteIcon class="text-[28px] text-[#E34D59]" />
+          </div>
+        </div>
+        <t-button theme="default" block class="h-[80px] text-[28px] rounded-[14px] mt-[16px]" @click="showTemplateManager = false">关闭</t-button>
+      </div>
+    </t-popup>
   </Root>
 </template>
 
 <script setup>
-import { ChevronRightIcon } from "tdesign-icons-vue-next"
-import { tripRepo } from "@/db/repositories"
+import { ChevronRightIcon, LocationIcon, LightbulbIcon, DeleteIcon } from "tdesign-icons-vue-next"
+import { tripRepo, tripTemplateRepo, cityConfigRepo, DEFAULT_CITIES } from "@/db/repositories"
 import { useUserStore } from "@/store"
 import { showToast, showErrorDialog } from "@/utils/common/tools"
-import { useRouter } from "vue-router"
+import { useRouter, useRoute } from "vue-router"
+import dayjs from "dayjs"
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
-const form = reactive({ reason: '', destination: '', startDate: '', endDate: '', estTransportFee: 0, estAccomFee: 0, attachments: [] })
+
+// 编辑模式检测
+const editId = computed(() => route.query.id ? Number(route.query.id) : null)
+const isEditMode = computed(() => !!editId.value)
+
+const form = reactive({
+  reason: '',
+  destination: '',
+  startDate: '',
+  endDate: '',
+  estTransportFee: 0,
+  estAccomFee: 0,
+  attachments: []
+})
+
 const loading = ref(false)
 const showStartPicker = ref(false)
 const showEndPicker = ref(false)
+const showSaveTemplate = ref(false)
+const showTemplateManager = ref(false)
+const templateName = ref('')
+
+// 模板和城市数据
+const tripTemplates = ref([])
+const selectedCityInfo = ref(null)
+const costEstimate = ref(null)
+
+// 热门城市
+const popularCities = DEFAULT_CITIES.slice(0, 8)
+
+// 费用总计
 const totalFee = computed(() => (Number(form.estTransportFee) || 0) + (Number(form.estAccomFee) || 0))
+
+// 出差天数
+const tripDays = computed(() => {
+  if (!form.startDate || !form.endDate) return 0
+  return dayjs(form.endDate).diff(dayjs(form.startDate), 'day') + 1
+})
+
+// 加载模板
+const loadTemplates = async () => {
+  tripTemplates.value = await tripTemplateRepo.getFrequentTemplates(userStore.userId, 5)
+}
+
+// 加载编辑数据
+const loadEditData = async () => {
+  if (!editId.value) return
+  const trip = await tripRepo.findById(editId.value)
+  if (trip) {
+    form.reason = trip.reason || ''
+    form.destination = trip.destination || ''
+    form.startDate = trip.startDate || ''
+    form.endDate = trip.endDate || ''
+    form.estTransportFee = trip.estTransportFee || 0
+    form.estAccomFee = trip.estAccomFee || 0
+    form.attachments = trip.attachments || []
+    // 更新城市信息
+    onDestinationChange()
+  }
+}
+
+// 选择城市
+const selectCity = async (city) => {
+  form.destination = city.name
+  selectedCityInfo.value = city
+  costEstimate.value = await cityConfigRepo.getCostEstimate(city.name)
+}
+
+// 目的地变化时查询城市信息
+const onDestinationChange = async () => {
+  if (form.destination) {
+    const estimate = await cityConfigRepo.getCostEstimate(form.destination)
+    costEstimate.value = estimate
+    // 尝试匹配城市
+    const city = await cityConfigRepo.findByName(form.destination)
+    selectedCityInfo.value = city
+  }
+}
+
+// 应用推荐费用
+const applyEstimate = () => {
+  if (costEstimate.value) {
+    form.estTransportFee = Math.round(costEstimate.value.transportFee.min + costEstimate.value.transportFee.max) / 2
+    form.estAccomFee = Math.round(costEstimate.value.accommodationFee.min + costEstimate.value.accommodationFee.max) / 2 * (tripDays.value || 1)
+  }
+}
+
+// 应用模板
+const applyTemplate = async (tpl) => {
+  const data = await tripTemplateRepo.applyTemplate(tpl.id)
+  form.reason = data.reason || form.reason
+  form.destination = data.destination || form.destination
+  form.estTransportFee = data.estTransportFee || form.estTransportFee
+  form.estAccomFee = data.estAccomFee || form.estAccomFee
+
+  // 更新使用次数
+  await tripTemplateRepo.incrementUseCount(tpl.id)
+
+  // 更新城市信息
+  onDestinationChange()
+  showToast('已应用模板')
+}
+
+// 保存为模板
+const saveAsTemplate = async () => {
+  if (!templateName.value.trim()) {
+    showToast('请输入模板名称')
+    return
+  }
+  if (!form.destination) {
+    showToast('请先填写目的地')
+    return
+  }
+
+  await tripTemplateRepo.createTemplate({
+    userId: userStore.userId,
+    name: templateName.value.trim(),
+    destination: form.destination,
+    reason: form.reason,
+    estTransportFee: form.estTransportFee,
+    estAccomFee: form.estAccomFee
+  })
+
+  templateName.value = ''
+  showSaveTemplate.value = false
+  showToast('模板已保存')
+  loadTemplates()
+}
+
+// 删除模板
+const deleteTemplate = async (id) => {
+  if (confirm('确定删除该模板吗？')) {
+    await tripTemplateRepo.delete(id)
+    showToast('已删除')
+    loadTemplates()
+  }
+}
 
 const handleSubmit = async () => {
   if (!form.reason.trim()) { showToast('请输入出差事由'); return }
@@ -125,11 +376,35 @@ const handleSubmit = async () => {
       return null
     })).then(arr => arr.filter(Boolean))
 
-    await tripRepo.create({
-      userId: userStore.userId, reason: form.reason, destination: form.destination, startDate: form.startDate, endDate: form.endDate,
-      estTransportFee: Number(form.estTransportFee) || 0, estAccomFee: Number(form.estAccomFee) || 0, attachments, status: 'pending', createdAt: new Date()
-    })
-    showToast('提交成功')
+    if (isEditMode.value) {
+      // 编辑模式：更新数据
+      await tripRepo.update(editId.value, {
+        reason: form.reason,
+        destination: form.destination,
+        startDate: form.startDate,
+        endDate: form.endDate,
+        estTransportFee: Number(form.estTransportFee) || 0,
+        estAccomFee: Number(form.estAccomFee) || 0,
+        attachments,
+        updatedAt: new Date()
+      })
+      showToast('修改成功')
+    } else {
+      // 新建模式：创建数据
+      await tripRepo.create({
+        userId: userStore.userId,
+        reason: form.reason,
+        destination: form.destination,
+        startDate: form.startDate,
+        endDate: form.endDate,
+        estTransportFee: Number(form.estTransportFee) || 0,
+        estAccomFee: Number(form.estAccomFee) || 0,
+        attachments,
+        status: 'pending',
+        createdAt: new Date()
+      })
+      showToast('提交成功')
+    }
     router.back()
   } catch (error) {
     showErrorDialog(error.message || '提交失败')
@@ -137,4 +412,11 @@ const handleSubmit = async () => {
     loading.value = false
   }
 }
+
+onMounted(async () => {
+  await loadTemplates()
+  if (isEditMode.value) {
+    await loadEditData()
+  }
+})
 </script>

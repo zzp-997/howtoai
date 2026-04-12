@@ -51,7 +51,10 @@
 
           <div class="px-[24px] py-[16px] bg-[#f9fafb] border-t border-[#f0f0f0] flex justify-between items-center">
             <span class="text-[24px] text-[#999]">预估费用</span>
-            <span class="text-[32px] font-semibold text-[#E34D59]">¥{{ (trip.estTransportFee || 0) + (trip.estAccomFee || 0) }}</span>
+            <div class="flex items-center gap-[12px]">
+              <span class="text-[32px] font-semibold text-[#E34D59]">¥{{ (trip.estTransportFee || 0) + (trip.estAccomFee || 0) }}</span>
+              <t-button v-if="trip.status === 'pending'" theme="primary" variant="outline" size="small" @click="handleEdit(trip)">修改</t-button>
+            </div>
           </div>
 
           <div v-if="trip.approvalComment" class="px-[24px] py-[16px] bg-[#fff8e1] text-[24px] text-[#666]">
@@ -93,6 +96,10 @@ const handleCancel = async (trip) => {
     showToast('已撤销')
     loadData()
   }
+}
+
+const handleEdit = (trip) => {
+  router.push({ path: '/user/trip/create', query: { id: trip.id } })
 }
 
 onMounted(() => loadData())

@@ -6,7 +6,7 @@
         <div class="text-[26px] text-[var(--text-tertiary)] mb-[16px]">外观</div>
         <div class="bg-[var(--bg-primary)] rounded-[24px] shadow-sm overflow-hidden">
           <!-- 主题模式 -->
-          <div class="p-[24px] border-b border-[var(--border-color)]">
+          <div class="p-[24px] border-b border-[var(--border-color)] cursor-pointer" @click="showThemePicker = true">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-[16px]">
                 <div class="w-[48px] h-[48px] rounded-[12px] bg-gradient-to-br from-[#0052D9] to-[#266FE8] flex items-center justify-center">
@@ -17,7 +17,7 @@
                   <div class="text-[22px] text-[var(--text-tertiary)]">{{ themeLabel }}</div>
                 </div>
               </div>
-              <ChevronRightIcon class="text-[24px] text-[var(--text-tertiary)]" @click="showThemePicker = true" />
+              <ChevronRightIcon class="text-[24px] text-[var(--text-tertiary)]" />
             </div>
           </div>
 
@@ -133,7 +133,7 @@
         <div class="text-[26px] text-[var(--text-tertiary)] mb-[16px]">其他</div>
         <div class="bg-[var(--bg-primary)] rounded-[24px] shadow-sm overflow-hidden">
           <!-- 默认首页 -->
-          <div class="p-[24px]" @click="showPagePicker = true">
+          <div class="p-[24px] cursor-pointer" @click="showPagePicker = true">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-[16px]">
                 <div class="w-[48px] h-[48px] rounded-[12px] bg-gradient-to-br from-[#0052D9] to-[#266FE8] flex items-center justify-center">

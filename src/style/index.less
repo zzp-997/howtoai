@@ -620,6 +620,290 @@ body {
   border-radius: 24px 24px 0 0 !important;
 }
 
+/* ==================== 夜间模式额外覆盖 ==================== */
+[data-theme="dark"] {
+  /* 更多渐变背景覆盖 */
+  .bg-gradient-to-br.from-\[\#0052D9\].to-\[\#266FE8\]:not(.text-white) {
+    background: linear-gradient(to bottom right, #0052D9, #266FE8) !important;
+  }
+
+  .bg-gradient-to-br.from-\[\#00A870\].to-\[\#2BA471\]:not(.text-white) {
+    background: linear-gradient(to bottom right, #00A870, #2BA471) !important;
+  }
+
+  .bg-gradient-to-br.from-\[\#ED7B2F\].to-\[\#F09143\]:not(.text-white) {
+    background: linear-gradient(to bottom right, #ED7B2F, #F09143) !important;
+  }
+
+  .bg-gradient-to-br.from-\[\#E34D59\].to-\[\#F06956\]:not(.text-white) {
+    background: linear-gradient(to bottom right, #E34D59, #F06956) !important;
+  }
+
+  .bg-gradient-to-br.from-\[\#7B61FF\].to-\[\#9B8AFF\]:not(.text-white) {
+    background: linear-gradient(to bottom right, #7B61FF, #9B8AFF) !important;
+  }
+
+  .bg-gradient-to-br.from-\[\#FF7D7D\].to-\[\#FFA8A8\]:not(.text-white) {
+    background: linear-gradient(to bottom right, #FF7D7D, #FFA8A8) !important;
+  }
+
+  /* 边框半透明覆盖 */
+  .border-\[\#0052D9\]\/20 { border-color: rgba(107, 163, 232, 0.2) !important; }
+  .border-\[\#7B61FF\]\/20 { border-color: rgba(160, 143, 255, 0.2) !important; }
+  .border-\[\#00A870\]\/20 { border-color: rgba(77, 217, 160, 0.2) !important; }
+  .border-\[\#E34D59\]\/20 { border-color: rgba(242, 123, 133, 0.2) !important; }
+  .border-\[\#ED7B2F\]\/20 { border-color: rgba(245, 166, 85, 0.2) !important; }
+
+  /* 背景半透明覆盖 */
+  .bg-\[\#0052D9\]\/10 { background-color: rgba(107, 163, 232, 0.1) !important; }
+  .bg-\[\#266FE8\]\/10 { background-color: rgba(107, 163, 232, 0.1) !important; }
+  .bg-\[\#00A870\]\/10 { background-color: rgba(77, 217, 160, 0.1) !important; }
+  .bg-\[\#2BA471\]\/10 { background-color: rgba(77, 217, 160, 0.1) !important; }
+  .bg-\[\#ED7B2F\]\/10 { background-color: rgba(245, 166, 85, 0.1) !important; }
+  .bg-\[\#F09143\]\/10 { background-color: rgba(245, 166, 85, 0.1) !important; }
+  .bg-\[\#E34D59\]\/10 { background-color: rgba(242, 123, 133, 0.1) !important; }
+  .bg-\[\#F06956\]\/10 { background-color: rgba(242, 123, 133, 0.1) !important; }
+  .bg-\[\#7B61FF\]\/10 { background-color: rgba(160, 143, 255, 0.1) !important; }
+  .bg-\[\#9B8AFF\]\/10 { background-color: rgba(160, 143, 255, 0.1) !important; }
+  .bg-\[\#FF7D7D\]\/10 { background-color: rgba(255, 125, 125, 0.1) !important; }
+  .bg-\[\#FFA8A8\]\/10 { background-color: rgba(255, 168, 168, 0.1) !important; }
+
+  /* Alert 背景色 */
+  .bg-\[\#FFEBEE\] { background-color: rgba(242, 123, 133, 0.15) !important; }
+  .bg-\[\#FFF3E0\] { background-color: rgba(245, 166, 85, 0.15) !important; }
+  .bg-\[\#E8F5E9\] { background-color: rgba(77, 217, 160, 0.15) !important; }
+
+  /* ==================== 首页夜间模式适配 ==================== */
+  /* 背景渐变 */
+  .home-page.bg-gradient-to-br.from-\[\#f8fafc\] {
+    background: linear-gradient(to bottom right, var(--bg-secondary), var(--bg-tertiary), #1a1a1a) !important;
+  }
+
+  /* 标题文字 */
+  .text-\[\#1e293b\] { color: var(--text-primary) !important; }
+  .text-\[\#475569\] { color: var(--text-secondary) !important; }
+  .text-\[\#64748b\] { color: var(--text-secondary) !important; }
+  .text-\[\#94a3b8\] { color: var(--text-tertiary) !important; }
+  .text-\[\#cbd5e1\] { color: var(--text-tertiary) !important; }
+
+  /* 卡片边框 */
+  .border-slate-100 { border-color: var(--border-color) !important; }
+  .border-slate-200 { border-color: var(--border-color) !important; }
+
+  /* 卡片阴影 */
+  .shadow-slate-200\/50 { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important; }
+
+  /* 首页背景装饰 */
+  .bg-\[\#7B61FF\]\/5 { background-color: rgba(160, 143, 255, 0.05) !important; }
+  .bg-\[\#9B8AFF\]\/5 { background-color: rgba(160, 143, 255, 0.05) !important; }
+
+  /* 超期预警背景 */
+  .warning-card.bg-gradient-to-r.from-\[\#FFEBEE\] {
+    background: linear-gradient(90deg, rgba(242, 123, 133, 0.15), rgba(242, 123, 133, 0.1)) !important;
+  }
+
+  /* 待办项悬停背景 */
+  .hover\:bg-slate-50\/50:hover { background-color: rgba(255, 255, 255, 0.03) !important; }
+  .bg-slate-50\/50 { background-color: rgba(255, 255, 255, 0.03) !important; }
+
+  /* 功能卡片悬停 */
+  .menu-card:hover { box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important; }
+
+  /* 考勤卡片保持原色但调整 */
+  .attendance-card {
+    box-shadow: 0 20px 40px rgba(0, 82, 217, 0.15) !important;
+  }
+
+  /* 公告卡片 */
+  .announcement-card {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* 空状态卡片 */
+  .empty-card {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* 待办列表 */
+  .todo-list {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* 操作按钮 */
+  .action-btn {
+    background-color: var(--bg-tertiary) !important;
+    border-color: var(--border-color) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .action-btn:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* 头像容器阴影 */
+  .avatar-container .shadow-xl {
+    box-shadow: 0 20px 30px rgba(0, 82, 217, 0.2) !important;
+  }
+
+  /* 角标阴影 */
+  .shadow-lg.shadow-\[\#E34D59\]\/30 {
+    box-shadow: 0 8px 20px rgba(242, 123, 133, 0.3) !important;
+  }
+
+  .shadow-lg.shadow-\[\#00A870\]\/30 {
+    box-shadow: 0 8px 20px rgba(77, 217, 160, 0.3) !important;
+  }
+
+  /* 弹窗卡片 */
+  .popup-card {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  /* ==================== 登录页夜间模式适配 ==================== */
+  .login-page {
+    /* 保持深色背景，但可以稍微调整 */
+  }
+
+  /* 登录卡片毛玻璃效果调整 */
+  .login-card {
+    background: rgba(30, 41, 59, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* 输入框容器 */
+  .input-wrapper {
+    background: rgba(30, 41, 59, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .input-wrapper:hover,
+  .input-wrapper:focus-within {
+    background: rgba(30, 41, 59, 0.6) !important;
+    border-color: rgba(0, 82, 217, 0.5) !important;
+  }
+
+  /* 角色切换按钮背景 */
+  .login-card .bg-white\/10 {
+    background: rgba(30, 41, 59, 0.3) !important;
+  }
+
+  .login-card .hover\:text-white:hover {
+    color: #fff !important;
+  }
+
+  /* 粒子颜色调整 */
+  .particle {
+    background: radial-gradient(circle, rgba(107, 163, 232, 0.6) 0%, transparent 70%) !important;
+  }
+
+  /* 波浪颜色调整 */
+  .wave1 {
+    background: linear-gradient(90deg, transparent 0%, rgba(107, 163, 232, 0.15) 50%, transparent 100%) !important;
+  }
+
+  .wave2 {
+    background: linear-gradient(90deg, transparent 0%, rgba(107, 163, 232, 0.2) 50%, transparent 100%) !important;
+  }
+
+  .wave3 {
+    background: linear-gradient(90deg, transparent 0%, rgba(77, 217, 160, 0.1) 50%, transparent 100%) !important;
+  }
+
+  /* 鼠标光晕 */
+  .glow-effect {
+    background: radial-gradient(circle, rgba(107, 163, 232, 0.1) 0%, transparent 70%) !important;
+  }
+
+  /* Logo 环 */
+  .logo-ring {
+    border-color: rgba(107, 163, 232, 0.2) !important;
+  }
+
+  .ring2 {
+    border-color: rgba(107, 163, 232, 0.15) !important;
+  }
+
+  .ring3 {
+    border-color: rgba(77, 217, 160, 0.1) !important;
+  }
+
+  /* 测试账号提示 */
+  .text-white\/50 { color: rgba(255, 255, 255, 0.5) !important; }
+  .text-white\/70 { color: rgba(255, 255, 255, 0.7) !important; }
+  .text-white\/40 { color: rgba(255, 255, 255, 0.4) !important; }
+
+  /* 边框半透明 */
+  .border-white\/10 { border-color: rgba(255, 255, 255, 0.1) !important; }
+  .border-white\/20 { border-color: rgba(255, 255, 255, 0.2) !important; }
+
+  /* 首页背景渐变 - Tailwind slate 系列 */
+  .bg-gradient-to-br.from-\[\#f8fafc\].via-\[\#f1f5f9\].to-\[\#e2e8f0\] {
+    background: linear-gradient(to bottom right, #1f2937, #1a1a1a, #111827) !important;
+  }
+
+  /* 更多 slate 颜色覆盖 */
+  .bg-slate-50 { background-color: var(--bg-secondary) !important; }
+  .bg-slate-100 { background-color: var(--bg-tertiary) !important; }
+  .bg-slate-200 { background-color: #374151 !important; }
+
+  /* 文字颜色 - slate 系列 */
+  .text-slate-400 { color: var(--text-tertiary) !important; }
+  .text-slate-500 { color: var(--text-tertiary) !important; }
+  .text-slate-600 { color: var(--text-secondary) !important; }
+  .text-slate-700 { color: var(--text-secondary) !important; }
+  .text-slate-800 { color: var(--text-primary) !important; }
+  .text-slate-900 { color: var(--text-primary) !important; }
+
+  /* 边框颜色 - slate 系列 */
+  .border-slate-200 { border-color: var(--border-color) !important; }
+  .border-slate-300 { border-color: var(--border-color) !important; }
+
+  /* 背景半透明 - slate 系列 */
+  .bg-slate-800\/5 { background-color: rgba(255, 255, 255, 0.03) !important; }
+
+  /* 今日/超期标签背景 */
+  .bg-\[\#FFF7ED\] { background-color: rgba(245, 166, 85, 0.15) !important; }
+
+  /* 禁用状态边框 */
+  .border-slate-300 { border-color: var(--border-color) !important; }
+
+  /* 考勤状态指示点 */
+  .bg-slate-300 { background-color: var(--bg-tertiary) !important; }
+
+  /* 考勤标签 - 正常状态 */
+  .bg-\[\#E8F5E9\] { background-color: rgba(77, 217, 160, 0.15) !important; }
+  .text-\[\#00A870\] { color: #4dd9a0 !important; }
+
+  /* 考勤标签 - 异常状态 */
+  .bg-\[\#FFEBEE\] { background-color: rgba(242, 123, 133, 0.15) !important; }
+
+  /* 考勤卡片左侧指示条保持原色 */
+  .attendance-card .bg-gradient-to-b.from-\[\#0052D9\].to-\[\#266FE8\] {
+    background: linear-gradient(to bottom, #0052D9, #266FE8) !important;
+  }
+
+  /* 考勤卡片悬停背景 */
+  .hover\:bg-slate-50:hover { background-color: rgba(255, 255, 255, 0.03) !important; }
+
+  /* 首页图标容器背景 */
+  .bg-gradient-to-br.from-\[\#7B61FF\]\/10.to-\[\#9B8AFF\]\/10 {
+    background: linear-gradient(to bottom right, rgba(160, 143, 255, 0.1), rgba(160, 143, 255, 0.1)) !important;
+  }
+
+  /* 首页背景装饰透明度 */
+  .from-\[\#0052D9\]\/10 { --tw-gradient-from: rgba(107, 163, 232, 0.1) !important; }
+  .to-\[\#266FE8\]\/10 { --tw-gradient-to: rgba(107, 163, 232, 0.1) !important; }
+  .from-\[\#00A870\]\/10 { --tw-gradient-from: rgba(77, 217, 160, 0.1) !important; }
+  .to-\[\#2BA471\]\/10 { --tw-gradient-to: rgba(77, 217, 160, 0.1) !important; }
+
+  /* 阴影系列 */
+  .shadow-xl { box-shadow: 0 20px 25px -5px var(--shadow-color), 0 8px 10px -6px var(--shadow-color) !important; }
+  .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important; }
+
+  /* 功能菜单卡片右侧大图标透明度 */
+  .menu-card .opacity-\[0\.03\] { opacity: 0.02 !important; }
+}
+
 /* ==================== 全局布局工具类 ==================== */
 
 /* 页面容器 */

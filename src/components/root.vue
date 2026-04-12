@@ -1,6 +1,6 @@
 <template>
   <div class="w-full h-full flex flex-col">
-    <t-navbar v-if="showNavbar" :fixed="false" :title-max-length="20" :title="navbarTitle">
+    <t-navbar v-if="showNavbar" :fixed="false" :title-max-length="20" :title="navbarTitle" class="!bg-[var(--bg-primary)]">
       <template #left>
         <div v-if="isHome" class="flex items-center" @click="handleLogout()">
           <t-avatar :image="userStore.userInfo?.avatar || defaultAvatar" size="48px" />
