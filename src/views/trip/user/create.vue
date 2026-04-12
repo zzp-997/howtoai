@@ -352,10 +352,13 @@ const saveAsTemplate = async () => {
 
 // 删除模板
 const deleteTemplate = async (id) => {
-  if (confirm('确定删除该模板吗？')) {
+  try {
+    await showConfirmDialog({ content: '确定删除该模板吗？' })
     await tripTemplateRepo.delete(id)
     showToast('已删除')
     loadTemplates()
+  } catch (e) {
+    // 用户取消操作
   }
 }
 

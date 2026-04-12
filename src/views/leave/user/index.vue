@@ -74,7 +74,7 @@
 import { CalendarIcon } from "tdesign-icons-vue-next"
 import { leaveRepo } from "@/db/repositories"
 import { useUserStore } from "@/store"
-import { showToast } from "@/utils/common/tools"
+import { showToast, showConfirmDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
 
 const router = useRouter()
@@ -96,10 +96,13 @@ const getStatusLabel = (status) => ({ pending: '待审批', approved: '已批准
 const loadData = async () => { leaves.value = await leaveRepo.findByUserIdOrdered(userStore.userId) }
 
 const handleCancel = async (leave) => {
-  if (confirm('确定撤销该请假申请吗？')) {
+  try {
+    await showConfirmDialog({ content: '确定撤销该请假申请吗？' })
     await leaveRepo.delete(leave.id)
     showToast('已撤销')
     loadData()
+  } catch (e) {
+    // 用户取消操作
   }
 }
 

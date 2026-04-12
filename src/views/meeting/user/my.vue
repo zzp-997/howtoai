@@ -55,7 +55,7 @@
 import { CalendarIcon, LocationIcon, TimeIcon } from "tdesign-icons-vue-next"
 import { reservationRepo, meetingRoomRepo } from "@/db/repositories"
 import { useUserStore } from "@/store"
-import { showToast } from "@/utils/common/tools"
+import { showToast, showConfirmDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
 import dayjs from "dayjs"
 
@@ -87,10 +87,13 @@ const loadData = async () => {
 }
 
 const handleCancel = async (r) => {
-  if (confirm('确定取消该预定吗？')) {
+  try {
+    await showConfirmDialog({ content: '确定取消该预定吗？' })
     await reservationRepo.delete(r.id)
     showToast('已取消预定')
     loadData()
+  } catch (e) {
+    // 用户取消操作
   }
 }
 

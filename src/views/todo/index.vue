@@ -88,7 +88,7 @@
 import { AddIcon, CheckIcon, CheckCircleIcon, TimeIcon, DeleteIcon, CalendarIcon } from "tdesign-icons-vue-next"
 import { todoRepo } from "@/db/repositories"
 import { useUserStore } from "@/store"
-import { showToast } from "@/utils/common/tools"
+import { showToast, showConfirmDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
 import dayjs from "dayjs"
 
@@ -170,10 +170,13 @@ const handleToggle = async (todo) => {
 }
 
 const handleDelete = async (todo) => {
-  if (confirm(`确定删除「${todo.title}」吗？`)) {
+  try {
+    await showConfirmDialog({ content: `确定删除「${todo.title}」吗？` })
     await todoRepo.delete(todo.id)
     showToast('已删除')
     loadTodos()
+  } catch (e) {
+    // 用户取消操作
   }
 }
 

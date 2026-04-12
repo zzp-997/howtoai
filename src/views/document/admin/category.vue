@@ -43,7 +43,7 @@
 <script setup>
 import { AddIcon, FolderIcon } from "tdesign-icons-vue-next"
 import { documentCategoryRepo } from "@/db/repositories"
-import { showToast } from "@/utils/common/tools"
+import { showToast, showConfirmDialog } from "@/utils/common/tools"
 
 const categories = ref([])
 const showDialog = ref(false)
@@ -78,10 +78,13 @@ const handleSave = async () => {
 }
 
 const handleDelete = async (cat) => {
-  if (confirm(`确定删除分类「${cat.name}」吗？`)) {
+  try {
+    await showConfirmDialog({ content: `确定删除分类「${cat.name}」吗？` })
     await documentCategoryRepo.delete(cat.id)
     showToast("已删除")
     loadCategories()
+  } catch (e) {
+    // 用户取消操作
   }
 }
 

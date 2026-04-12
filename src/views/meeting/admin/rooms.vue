@@ -86,7 +86,7 @@
 <script setup>
 import { AddIcon, FolderIcon, HomeIcon, UserIcon, CloseIcon } from "tdesign-icons-vue-next"
 import { meetingRoomRepo } from "@/db/repositories"
-import { showToast } from "@/utils/common/tools"
+import { showToast, showConfirmDialog } from "@/utils/common/tools"
 
 const rooms = ref([])
 const showDialog = ref(false)
@@ -122,10 +122,13 @@ const handleSave = async () => {
 }
 
 const handleDelete = async (room) => {
-  if (confirm(`确定删除「${room.name}」吗？`)) {
+  try {
+    await showConfirmDialog({ content: `确定删除「${room.name}」吗？` })
     await meetingRoomRepo.delete(room.id)
     showToast('已删除')
     loadRooms()
+  } catch (e) {
+    // 用户取消操作
   }
 }
 

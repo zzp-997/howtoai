@@ -111,7 +111,7 @@
 <script setup>
 import { ChevronDownIcon, SettingIcon, CheckCircleIcon, CalendarIcon, LocationIcon, UserIcon, TimeIcon } from "tdesign-icons-vue-next"
 import { reservationRepo, meetingRoomRepo, userRepo } from "@/db/repositories"
-import { showToast } from "@/utils/common/tools"
+import { showToast, showConfirmDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
 import dayjs from "dayjs"
 
@@ -166,10 +166,13 @@ const handleDateConfirm = (value) => {
 }
 
 const handleDelete = async (r) => {
-  if (confirm(`确定删除预定「${r.subject}」吗？`)) {
+  try {
+    await showConfirmDialog({ content: `确定删除预定「${r.subject}」吗？` })
     await reservationRepo.delete(r.id)
     showToast('已删除')
     loadAllReservations()
+  } catch (e) {
+    // 用户取消操作
   }
 }
 

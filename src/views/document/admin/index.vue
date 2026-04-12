@@ -71,7 +71,7 @@
 import { AddIcon, FolderIcon, FileIcon, ChevronRightIcon } from "tdesign-icons-vue-next"
 import { documentRepo, documentCategoryRepo } from "@/db/repositories"
 import { useUserStore } from "@/store"
-import { showToast } from "@/utils/common/tools"
+import { showToast, showConfirmDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
 import dayjs from "dayjs"
 
@@ -124,10 +124,13 @@ const handleUpload = async () => {
 }
 
 const handleDelete = async (doc) => {
-  if (confirm(`确定删除「${doc.name}」吗？`)) {
+  try {
+    await showConfirmDialog({ content: `确定删除「${doc.name}」吗？` })
     await documentRepo.delete(doc.id)
     showToast("已删除")
     loadDocuments()
+  } catch (e) {
+    // 用户取消操作
   }
 }
 
