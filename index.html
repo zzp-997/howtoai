@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport"
+    content="initial-scale=1, width=device-width, height=device-height, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>How To AI</title>
+    <!-- 传统浏览器 polyfill -->
+    <script>
+      // 检测浏览器是否支持 ES6
+      var supportsES6 = (function() {
+        try {
+          new Function('(a = 0) => a');
+          return true;
+        } catch (err) {
+          return false;
+        }
+      })();
+
+      // 如果不支持 ES6，加载 polyfill
+      if (!supportsES6) {
+        var script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/core-js-bundle@3/minified.js";
+        script.crossOrigin = "anonymous";
+        document.head.appendChild(script);
+
+        var script2 = document.createElement('script');
+        script2.src = "https://cdn.jsdelivr.net/npm/regenerator-runtime@0.13.7/runtime.min.js";
+        document.head.appendChild(script2);
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
