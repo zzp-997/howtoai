@@ -184,7 +184,7 @@ export const seedReservations = generateTestReservations();
 export async function insertSeedData(db) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(
-      ['users', 'meeting_rooms', 'attendance_config', 'document_categories', 'announcements'],
+      ['users', 'meeting_rooms', 'attendance_config', 'document_categories', 'announcements', 'reservations'],
       'readwrite'
     );
 
@@ -241,6 +241,12 @@ export async function insertSeedData(db) {
         const announcementStore = tx.objectStore('announcements');
         seedAnnouncements.forEach(announcement => {
           announcementStore.put(announcement);
+        });
+
+        // 插入预定记录
+        const reservationStore = tx.objectStore('reservations');
+        seedReservations.forEach(reservation => {
+          reservationStore.put(reservation);
         });
       }
     };

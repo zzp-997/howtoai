@@ -35,6 +35,17 @@
           <div class="text-[28px] text-[#333] mb-[16px]">会议主题</div>
           <t-input v-model="formData.subject" placeholder="请输入会议主题" :bordered="false" class="bg-[#f5f7fa] rounded-[12px] p-[20px]" />
         </div>
+
+        <!-- 加入待办选项 -->
+        <div class="bg-white rounded-[24px] p-[24px] shadow-sm mt-[16px]">
+          <div class="flex justify-between items-center">
+            <div>
+              <div class="text-[28px] text-[#333]">加入待办</div>
+              <div class="text-[24px] text-[#999]">将会议添加到待办列表</div>
+            </div>
+            <t-switch v-model="formData.addToTodo" size="large" />
+          </div>
+        </div>
       </div>
 
       <!-- 时间预览 -->
@@ -65,7 +76,7 @@
 
 <script setup>
 import { CalendarIcon, ChevronRightIcon } from "tdesign-icons-vue-next"
-import { reservationRepo, userPreferenceRepo } from "@/db/repositories"
+import { reservationRepo, userPreferenceRepo, todoRepo } from "@/db/repositories"
 import { useUserStore } from "@/store"
 import { showToast, showErrorDialog } from "@/utils/common/tools"
 import dayjs from "dayjs"
@@ -79,7 +90,7 @@ const roomId = Number(route.query.roomId)
 const roomName = route.query.roomName || ''
 const date = route.query.date || ''
 
-const formData = reactive({ date, startTime: '', endTime: '', subject: '' })
+const formData = reactive({ date, startTime: '', endTime: '', subject: '', addToTodo: true })
 const loading = ref(false)
 const showStartPicker = ref(false)
 const showEndPicker = ref(false)
@@ -117,7 +128,7 @@ const handleSubmit = async () => {
       showErrorDialog(`该时段已被预定：${conflict.subject}（${conflict.start.split(' ')[1]}-${conflict.end.split(' ')[1]}）`)
       return
     }
-    await reservationRepo.create({ roomId, userId: userStore.userId, subject: formData.subject, start, end, attendees: [], createdAt: new Date() })
+    const reservationId = await reservationRepo.create({ roomId, userId: userStore.userId, subject: formData.subject, start, end, attendees: [], createdAt: new Date() })
 
     // 记录用户偏好（智能推荐用）
     const bookingDate = dayjs(formData.date)
@@ -131,6 +142,23 @@ const handleSubmit = async () => {
       startTime: formData.startTime,
       endTime: formData.endTime
     })
+
+    // 如果选择加入待办
+    if (formData.addToTodo) {
+      await todoRepo.create({
+        userId: userStore.userId,
+        title: `会议：${formData.subject}`,
+        taskDate: formData.date, // 任务日期为会议日期
+        dueDate: formData.date, // 截止日期也设为会议日期
+        priority: 2, // 中等优先级
+        smartPriority: 6,
+        relatedType: 'meeting',
+        relatedId: reservationId,
+        remark: `${roomName} ${formData.startTime}-${formData.endTime}`,
+        status: 'pending',
+        createdAt: new Date()
+      })
+    }
 
     showToast('预定成功')
     router.back()

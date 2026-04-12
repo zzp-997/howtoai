@@ -2,9 +2,9 @@
   <Root :title="false" :show-back="false">
     <div class="home-page min-h-screen bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0] relative overflow-hidden pb-safe">
       <!-- 背景装饰 -->
-      <div class="absolute -top-[200px] -right-[150px] w-[500px] h-[500px] bg-gradient-to-br from-[#0052D9]/10 to-[#266FE8]/10 rounded-full blur-3xl animate-pulse-slow"></div>
-      <div class="absolute -bottom-[150px] -left-[100px] w-[400px] h-[400px] bg-gradient-to-br from-[#00A870]/10 to-[#2BA471]/10 rounded-full blur-3xl animate-pulse-slow animation-delay-2000"></div>
-      <div class="absolute top-[40%] left-[50%] -translate-x-1/2 w-[300px] h-[300px] bg-gradient-to-br from-[#7B61FF]/5 to-[#9B8AFF]/5 rounded-full blur-3xl"></div>
+      <div class="absolute -top-[200px] -right-[150px] w-[500px] h-[500px] bg-gradient-to-br from-[#0052D9]/10 to-[#266FE8]/10 rounded-full blur-3xl animate-pulse-slow pointer-events-none z-0"></div>
+      <div class="absolute -bottom-[150px] -left-[100px] w-[400px] h-[400px] bg-gradient-to-br from-[#00A870]/10 to-[#2BA471]/10 rounded-full blur-3xl animate-pulse-slow animation-delay-2000 pointer-events-none z-0"></div>
+      <div class="absolute top-[40%] left-[50%] -translate-x-1/2 w-[300px] h-[300px] bg-gradient-to-br from-[#7B61FF]/5 to-[#9B8AFF]/5 rounded-full blur-3xl pointer-events-none z-0"></div>
 
       <!-- 顶部欢迎区域 -->
       <div class="relative px-[32px] pt-[60px] mb-[24px]">
@@ -171,9 +171,11 @@
             <CheckCircleIcon class="text-[40px] text-[#00A870]" />
           </div>
           <div class="text-[26px] text-[#64748b]">暂无待办任务</div>
-          <div class="mt-[20px] inline-flex items-center gap-[8px] px-[20px] py-[12px] bg-gradient-to-r from-[#7B61FF] to-[#9B8AFF] rounded-[14px] shadow-lg shadow-[#7B61FF]/30 hover:shadow-xl transition-shadow cursor-pointer" @click="router.push('/user/todo/create')">
-            <AddIcon class="text-[22px] text-white" />
-            <span class="text-[24px] text-white font-medium">添加待办</span>
+          <div class="mt-[24px] inline-flex items-center gap-[10px] px-[28px] py-[16px] bg-gradient-to-r from-[#7B61FF] to-[#9B8AFF] rounded-[16px] shadow-lg shadow-[#7B61FF]/30 hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer" @click="handleAddTodo">
+            <div class="w-[36px] h-[36px] bg-white/20 rounded-[10px] flex items-center justify-center">
+              <AddIcon class="text-[22px] text-white" />
+            </div>
+            <span class="text-[26px] text-white font-semibold">添加待办</span>
           </div>
         </div>
 
@@ -189,13 +191,23 @@
               <div class="text-[26px] text-[#1e293b] truncate font-medium">{{ todo.title }}</div>
               <div class="flex items-center gap-[10px] mt-[6px]">
                 <span class="text-[20px] font-medium" :style="{ color: getPriorityColor(todo.priority) }">{{ getPriorityLabel(todo.priority) }}</span>
+                <span v-if="todo.taskDate" class="text-[20px] text-[#0052D9]">{{ formatTaskDate(todo.taskDate) }}</span>
                 <span v-if="todo.dueDate" class="flex items-center gap-[4px] text-[20px]" :class="isOverdue(todo.dueDate) ? 'text-[#E34D59]' : 'text-[#64748b]'">
                   <TimeIcon class="text-[16px]" />
-                  {{ formatDueDate(todo.dueDate) }}
+                  截止: {{ formatDueDate(todo.dueDate) }}
                 </span>
                 <span v-if="isOverdue(todo.dueDate)" class="text-[18px] text-[#E34D59] bg-[#FFEBEE] px-[10px] py-[4px] rounded-[6px] font-medium">超期</span>
                 <span v-else-if="isToday(todo.dueDate)" class="text-[18px] text-[#ED7B2F] bg-[#FFF7ED] px-[10px] py-[4px] rounded-[6px] font-medium">今日</span>
               </div>
+            </div>
+          </div>
+          <!-- 添加待办按钮 -->
+          <div class="p-[16px] border-t border-slate-100">
+            <div class="flex items-center justify-center gap-[10px] py-[14px] bg-gradient-to-r from-[#7B61FF]/10 via-[#8B7AFF]/10 to-[#9B8AFF]/10 rounded-[16px] cursor-pointer hover:from-[#7B61FF]/20 hover:via-[#8B7AFF]/20 hover:to-[#9B8AFF]/20 transition-all group" @click="handleAddTodo">
+              <div class="w-[32px] h-[32px] bg-gradient-to-br from-[#7B61FF] to-[#9B8AFF] rounded-[10px] flex items-center justify-center shadow-md shadow-[#7B61FF]/20 group-hover:shadow-lg group-hover:scale-110 transition-all">
+                <AddIcon class="text-[20px] text-white" />
+              </div>
+              <span class="text-[24px] text-[#7B61FF] font-semibold">添加待办</span>
             </div>
           </div>
         </div>
@@ -521,6 +533,14 @@ const getPriorityColor = (priority) => ({ 1: '#E34D59', 2: '#ED7B2F', 3: '#00A87
 
 const formatDate = (date) => dayjs(date).format('YYYY-MM-DD HH:mm')
 
+const formatTaskDate = (date) => {
+  const today = dayjs().format('YYYY-MM-DD')
+  const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD')
+  if (date === today) return '今天'
+  if (date === tomorrow) return '明天'
+  return dayjs(date).format('MM/DD')
+}
+
 const formatDueDate = (date) => {
   const today = dayjs().format('YYYY-MM-DD')
   const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD')
@@ -532,6 +552,10 @@ const formatDueDate = (date) => {
 const handleToggleTodo = async (todo) => {
   await todoRepo.toggleComplete(todo.id)
   loadTodos()
+}
+
+const handleAddTodo = () => {
+  router.push('/user/todo/create')
 }
 
 const handleMenuClick = (item) => router.push(item.path)

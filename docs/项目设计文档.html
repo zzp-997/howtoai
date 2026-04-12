@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>极智协同 - 企业办公助手 H5 端项目设计文档</title>
+  <style>
+    body {
+      font-family: "Microsoft YaHei", "SimSun", sans-serif;
+      line-height: 1.8;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px;
+      color: #333;
+    }
+    h1 {
+      font-size: 28px;
+      color: #0052D9;
+      border-bottom: 3px solid #0052D9;
+      padding-bottom: 10px;
+      margin-top: 40px;
+    }
+    h2 {
+      font-size: 22px;
+      color: #1a1a1a;
+      border-left: 4px solid #0052D9;
+      padding-left: 12px;
+      margin-top: 30px;
+    }
+    h3 {
+      font-size: 18px;
+      color: #333;
+      margin-top: 24px;
+    }
+    h4 {
+      font-size: 16px;
+      color: #444;
+      margin-top: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #0052D9;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    code {
+      background-color: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: Consolas, monospace;
+      font-size: 14px;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .highlight {
+      background: linear-gradient(120deg, #ffebcd 0%, #ffebcd 100%);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .star {
+      color: #ff6b00;
+      font-weight: bold;
+    }
+    .header-info {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 30px;
+      background: linear-gradient(135deg, #0052D9 0%, #266FE8 100%);
+      color: white;
+      border-radius: 12px;
+    }
+    .header-info h1 {
+      color: white;
+      border: none;
+      margin: 0;
+    }
+    .toc {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+    .toc ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .toc li {
+      padding: 6px 0;
+    }
+    .toc a {
+      color: #0052D9;
+      text-decoration: none;
+    }
+    .feature-box {
+      background: linear-gradient(135deg, #e8f4fd 0%, #d4e9f7 100%);
+      border-left: 4px solid #0052D9;
+      padding: 16px 20px;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+    }
+    .feature-box h4 {
+      margin-top: 0;
+      color: #0052D9;
+    }
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #0052D9, transparent);
+      margin: 40px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header-info">
+  <h1>极智协同 - 企业办公助手 H5 端</h1>
+  <p style="font-size: 20px; margin-top: 10px;">项目设计文档</p>
+  <p style="font-size: 14px; margin-top: 20px;">版本：v1.0 &nbsp;|&nbsp; 创建日期：2026年4月12日 &nbsp;|&nbsp; 状态：已上线</p>
+</div>
+
+<div class="toc">
+  <h3>目录</h3>
+  <ul>
+    <li><a href="#section1">一、项目概述</a></li>
+    <li><a href="#section2">二、产品目标与场景说明</a></li>
+    <li><a href="#section3">三、核心功能模块设计</a></li>
+    <li><a href="#section4">四、智能化特色功能</a></li>
+    <li><a href="#section5">五、技术栈与架构说明</a></li>
+    <li><a href="#section6">六、数据库设计</a></li>
+    <li><a href="#section7">七、AI 使用方式说明</a></li>
+    <li><a href="#section8">八、项目迭代历程</a></li>
+  </ul>
+</div>
+
+<h1 id="section1">一、项目概述</h1>
+
+<h2>1.1 项目背景</h2>
+<p>极智协同是一款面向企业职场场景的 H5 移动端办公应用，旨在解决日常办公中的高频痛点，通过智能化功能设计，提升企业员工的办公效率和体验。</p>
+
+<h2>1.2 核心理念</h2>
+<ul>
+  <li><strong>深度契合职场真实诉求</strong>：围绕会议预定、差旅出行、考勤打卡等高频场景进行产品设计</li>
+  <li><strong>极致用户体验</strong>：简洁直观的交互设计，减少用户认知负担</li>
+  <li><strong>逻辑严密</strong>：完整的数据流转和状态管理，确保业务逻辑准确</li>
+  <li><strong>智能化升级</strong>：通过数据分析和智能推荐，主动为用户提供决策支持</li>
+</ul>
+
+<h2>1.3 运行环境</h2>
+<ul>
+  <li><strong>运行平台</strong>：H5 移动端网页，支持主流浏览器</li>
+  <li><strong>数据存储</strong>：完全基于 IndexedDB 本地存储</li>
+  <li><strong>离线支持</strong>：所有核心功能支持离线运行</li>
+</ul>
+
+<h2>1.4 用户角色</h2>
+<table>
+  <tr>
+    <th>角色</th>
+    <th>说明</th>
+  </tr>
+  <tr>
+    <td>普通员工（用户端）</td>
+    <td>日常办公操作：会议预定、差旅申请、请假打卡、文档查询、待办管理</td>
+  </tr>
+  <tr>
+    <td>管理员（管理员端）</td>
+    <td>审批管理、会议室配置、文档管理、考勤管理、公告发布</td>
+  </tr>
+</table>
+
+<div class="section-divider"></div>
+
+<h1 id="section2">二、产品目标与场景说明</h1>
+
+<h2>2.1 产品目标</h2>
+<p>打造一套操作简单、逻辑严密、体验优秀的数字化办公解决方案，通过智能化功能设计，让员工从繁琐的事务性工作中解放出来，专注于更有价值的工作。</p>
+
+<h2>2.2 场景矩阵</h2>
+<table>
+  <tr>
+    <th>场景</th>
+    <th>痛点</th>
+    <th>解决方案</th>
+    <th>智能特色</th>
+  </tr>
+  <tr>
+    <td>会议预定</td>
+    <td>会议室难订、热门时段冲突多</td>
+    <td>时间轴可视化、冲突检测</td>
+    <td><span class="highlight">一键秒定空闲会议室</span></td>
+  </tr>
+  <tr>
+    <td>差旅出行</td>
+    <td>每次出差需重复填写、不熟悉目的地</td>
+    <td>表单简化、附件上传</td>
+    <td><span class="highlight">智能行程规划、费用预估</span></td>
+  </tr>
+  <tr>
+    <td>请假打卡</td>
+    <td>忘记打卡、请假流程繁琐</td>
+    <td>一键打卡、补卡申请</td>
+    <td><span class="highlight">连休推荐、假期过期提醒</span></td>
+  </tr>
+  <tr>
+    <td>文档查询</td>
+    <td>文档多、查找难</td>
+    <td>分类浏览、全文搜索</td>
+    <td><span class="highlight">常用文档推荐、搜索联想</span></td>
+  </tr>
+  <tr>
+    <td>待办任务</td>
+    <td>事项多、易遗漏</td>
+    <td>轻量级任务管理</td>
+    <td><span class="highlight">智能优先级排序、超期预警</span></td>
+  </tr>
+  <tr>
+    <td>公告通知</td>
+    <td>重要信息被忽略</td>
+    <td>分类展示、已读追踪</td>
+    <td><span class="highlight">重要公告强制弹窗提醒</span></td>
+  </tr>
+</table>
+
+<div class="section-divider"></div>
+
+<h1 id="section3">三、核心功能模块设计</h1>
+
+<h2>3.1 会议预定模块</h2>
+
+<h3>功能概述</h3>
+<p>解决企业会议室预定难、冲突多的痛点，提供可视化的预定管理和智能推荐功能。</p>
+
+<h3>核心功能</h3>
+<table>
+  <tr>
+    <th>功能</th>
+    <th>用户端</th>
+    <th>管理员端</th>
+  </tr>
+  <tr>
+    <td>会议室列表</td>
+    <td>查看名称、容量、设备</td>
+    <td>增删改会议室</td>
+  </tr>
+  <tr>
+    <td>预定日历</td>
+    <td>时间轴展示占用情况</td>
+    <td>查看所有预定</td>
+  </tr>
+  <tr>
+    <td>新建预定</td>
+    <td>表单+冲突检测</td>
+    <td>可删除任意预定</td>
+  </tr>
+  <tr>
+    <td>我的预定</td>
+    <td>列表+取消功能</td>
+    <td>—</td>
+  </tr>
+</table>
+
+<div class="feature-box">
+  <h4><span class="star">★</span> 独特功能点：一键秒定空闲会议室</h4>
+  <p><strong>设计思路：</strong></p>
+  <ul>
+    <li>分析用户历史预定习惯，自动记录常用会议室和时段偏好</li>
+    <li>实时计算各会议室空闲状态，匹配用户需求（人数、设备）</li>
+    <li>首页直接展示"智能推荐"卡片，点击即可一键预定</li>
+  </ul>
+  <p><strong>实现方式：</strong></p>
+  <pre>
+// 用户预定偏好记录
+userMeetingPreferences: {
+  frequentRooms: [roomId],        // 常用会议室
+  frequentTimes: [{weekday, time}], // 常用时段
+  lastBookingInfo: {...}          // 上次预定信息
+}
+
+// 智能推荐算法
+1. 按历史使用频次排序会议室
+2. 过滤当前时段空闲的会议室
+3. 匹配人数和设备需求
+4. 返回 Top 3 推荐结果
+  </pre>
+</div>
+
+<h2>3.2 差旅出行模块</h2>
+
+<h3>功能概述</h3>
+<p>简化差旅申请流程，提供费用预估和行程规划支持。</p>
+
+<h3>核心功能</h3>
+<table>
+  <tr>
+    <th>功能</th>
+    <th>用户端</th>
+    <th>管理员端</th>
+  </tr>
+  <tr>
+    <td>新建申请</td>
+    <td>出差事由、目的地、费用预估</td>
+    <td>审批（通过/拒绝）</td>
+  </tr>
+  <tr>
+    <td>我的差旅</td>
+    <td>状态筛选、撤销申请</td>
+    <td>费用统计</td>
+  </tr>
+  <tr>
+    <td>附件上传</td>
+    <td>图片/文件 Blob 存储</td>
+    <td>查看附件</td>
+  </tr>
+</table>
+
+<div class="feature-box">
+  <h4><span class="star">★</span> 独特功能点：智能行程规划</h4>
+  <p><strong>设计思路：</strong></p>
+  <ul>
+    <li>根据目的地城市，自动展示天气信息和注意事项</li>
+    <li>基于城市配置，智能预估交通和住宿费用区间</li>
+    <li>支持保存出差模板，一键复用历史申请</li>
+  </ul>
+  <p><strong>实现方式：</strong></p>
+  <pre>
+// 城市配置表
+cityConfigs: {
+  name: '上海',
+  avgHotelPrice: 400,      // 平均住宿费用
+  avgTransportPrice: 800,  // 平均交通费用
+  weatherTips: '建议带薄外套'
+}
+
+// 出差模板
+tripTemplates: {
+  name: '上海总部出差',
+  destination: '上海',
+  estTransportFee: 800,
+  estAccomFee: 1200
+}
+  </pre>
+</div>
+
+<h2>3.3 请假打卡模块</h2>
+
+<h3>功能概述</h3>
+<p>整合请假申请和每日考勤，提供智能提醒和补卡功能。</p>
+
+<h3>核心功能</h3>
+<table>
+  <tr>
+    <th>功能</th>
+    <th>用户端</th>
+    <th>管理员端</th>
+  </tr>
+  <tr>
+    <td>打卡操作</td>
+    <td>上班/下班打卡</td>
+    <td>考勤规则配置</td>
+  </tr>
+  <tr>
+    <td>打卡日历</td>
+    <td>月视图状态展示</td>
+    <td>全员考勤报表</td>
+  </tr>
+  <tr>
+    <td>请假申请</td>
+    <td>假别选择+余额显示</td>
+    <td>请假审批</td>
+  </tr>
+  <tr>
+    <td>补卡申请</td>
+    <td>忘记打卡后申请</td>
+    <td>补卡审批</td>
+  </tr>
+</table>
+
+<div class="feature-box">
+  <h4><span class="star">★</span> 独特功能点：连休推荐与假期过期提醒</h4>
+  <p><strong>设计思路：</strong></p>
+  <ul>
+    <li>结合节假日配置，智能计算请假一天可获得的最大连休天数</li>
+    <li>检测年假余额和过期日期，主动提醒用户使用即将过期的假期</li>
+    <li>首页展示打卡状态卡片，进入时自动弹出打卡提醒</li>
+  </ul>
+  <p><strong>实现方式：</strong></p>
+  <pre>
+// 连休推荐算法
+1. 遍历未来30天的工作日
+2. 检查前后是否有周末/节假日
+3. 计算请假1天可获得的连休天数
+4. 排序返回最优推荐
+
+// 假期过期提醒
+if (年假过期日期 - 今天 <= 60天 && 年假余额 > 0) {
+  首页展示提醒卡片
+}
+  </pre>
+</div>
+
+<h2>3.4 文档查询模块</h2>
+
+<h3>功能概述</h3>
+<p>企业文档的集中管理和智能检索平台。</p>
+
+<h3>核心功能</h3>
+<table>
+  <tr>
+    <th>功能</th>
+    <th>用户端</th>
+    <th>管理员端</th>
+  </tr>
+  <tr>
+    <td>分类浏览</td>
+    <td>按分类查看文档</td>
+    <td>分类增删</td>
+  </tr>
+  <tr>
+    <td>文档搜索</td>
+    <td>关键词搜索+标签筛选</td>
+    <td>文档上传/删除</td>
+  </tr>
+  <tr>
+    <td>文档操作</td>
+    <td>在线预览+下载</td>
+    <td>Blob 存储</td>
+  </tr>
+</table>
+
+<div class="feature-box">
+  <h4><span class="star">★</span> 独特功能点：智能搜索推荐</h4>
+  <p><strong>设计思路：</strong></p>
+  <ul>
+    <li>记录用户浏览历史，首页展示最近浏览和常用文档</li>
+    <li>搜索时自动联想历史搜索词和热门关键词</li>
+    <li>根据访问频率，自动排序"常用文档"</li>
+  </ul>
+</div>
+
+<h2>3.5 待办任务模块</h2>
+
+<h3>功能概述</h3>
+<p>轻量级个人任务管理工具，与业务流程联动。</p>
+
+<h3>核心功能</h3>
+<table>
+  <tr>
+    <th>功能</th>
+    <th>描述</th>
+  </tr>
+  <tr>
+    <td>任务列表</td>
+    <td>按状态分组，支持截止日期排序</td>
+  </tr>
+  <tr>
+    <td>快速添加</td>
+    <td>输入任务名、截止时间、优先级</td>
+  </tr>
+  <tr>
+    <td>任务操作</td>
+    <td>完成、编辑、删除</td>
+  </tr>
+  <tr>
+    <td>提醒通知</td>
+    <td>浏览器 Notification API</td>
+  </tr>
+</table>
+
+<div class="feature-box">
+  <h4><span class="star">★</span> 独特功能点：智能优先级与超期预警</h4>
+  <p><strong>设计思路：</strong></p>
+  <ul>
+    <li>根据截止时间和重要性，自动计算智能优先级分数</li>
+    <li>首页展示今日待办数量和超期预警</li>
+    <li>超期任务红色醒目标注</li>
+  </ul>
+</div>
+
+<h2>3.6 公告通知模块</h2>
+
+<h3>功能概述</h3>
+<p>企业信息发布的官方渠道，确保重要信息触达每一位员工。</p>
+
+<h3>核心功能</h3>
+<table>
+  <tr>
+    <th>功能</th>
+    <th>用户端</th>
+    <th>管理员端</th>
+  </tr>
+  <tr>
+    <td>公告列表</td>
+    <td>按时间倒序、置顶优先</td>
+    <td>发布公告</td>
+  </tr>
+  <tr>
+    <td>公告详情</td>
+    <td>查看内容、标记已读</td>
+    <td>编辑/删除</td>
+  </tr>
+  <tr>
+    <td>已读状态</td>
+    <td>查看自己是否已读</td>
+    <td>查看全员阅读情况</td>
+  </tr>
+</table>
+
+<div class="feature-box">
+  <h4><span class="star">★</span> 独特功能点：重要公告强制弹窗</h4>
+  <p><strong>设计思路：</strong></p>
+  <ul>
+    <li>管理员发布时可标记"重要公告"</li>
+    <li>用户首次进入首页时，未读重要公告自动弹窗展示</li>
+    <li>支持多条公告轮播查看，确保信息100%触达</li>
+  </ul>
+</div>
+
+<div class="section-divider"></div>
+
+<h1 id="section4">四、智能化特色功能</h1>
+
+<h2>4.1 智能化设计原则</h2>
+<table>
+  <tr>
+    <th>原则</th>
+    <th>说明</th>
+  </tr>
+  <tr>
+    <td>轻量化实现</td>
+    <td>基于 IndexedDB 本地数据，无需外部 API</td>
+  </tr>
+  <tr>
+    <td>用户无感</td>
+    <td>智能推荐自动展示，用户可手动调整</td>
+  </tr>
+  <tr>
+    <td>渐进增强</td>
+    <td>在现有流程中嵌入智能建议，不改变用户习惯</td>
+  </tr>
+</table>
+
+<h2>4.2 智能功能汇总</h2>
+<table>
+  <tr>
+    <th>模块</th>
+    <th>智能功能</th>
+    <th>核心算法</th>
+  </tr>
+  <tr>
+    <td>会议预定</td>
+    <td>空闲会议室推荐</td>
+    <td>频次统计 + 设备匹配</td>
+  </tr>
+  <tr>
+    <td>差旅出行</td>
+    <td>费用预估、行程模板</td>
+    <td>城市距离查表 + 模板复用</td>
+  </tr>
+  <tr>
+    <td>请假打卡</td>
+    <td>连休推荐、假期提醒</td>
+    <td>日历计算 + 余额检查</td>
+  </tr>
+  <tr>
+    <td>文档查询</td>
+    <td>常用文档、搜索联想</td>
+    <td>浏览频次 + 时间衰减</td>
+  </tr>
+  <tr>
+    <td>待办任务</td>
+    <td>优先级排序、超期预警</td>
+    <td>截止时间权重 + 重要性权重</td>
+  </tr>
+  <tr>
+    <td>公告通知</td>
+    <td>重要公告弹窗</td>
+    <td>未读检测 + 弹窗状态</td>
+  </tr>
+</table>
+
+<div class="section-divider"></div>
+
+<h1 id="section5">五、技术栈与架构说明</h1>
+
+<h2>5.1 技术栈总览</h2>
+<table>
+  <tr>
+    <th>类别</th>
+    <th>技术选型</th>
+    <th>版本</th>
+  </tr>
+  <tr>
+    <td>前端框架</td>
+    <td>Vue 3</td>
+    <td>3.5.x</td>
+  </tr>
+  <tr>
+    <td>路由管理</td>
+    <td>Vue Router</td>
+    <td>4.x</td>
+  </tr>
+  <tr>
+    <td>状态管理</td>
+    <td>Pinia</td>
+    <td>2.x</td>
+  </tr>
+  <tr>
+    <td>UI 框架</td>
+    <td>TDesign Mobile Vue</td>
+    <td>1.6.x</td>
+  </tr>
+  <tr>
+    <td>图标库</td>
+    <td>TDesign Icons Vue Next</td>
+    <td>0.4.x</td>
+  </tr>
+  <tr>
+    <td>样式方案</td>
+    <td>TailwindCSS + Less</td>
+    <td>3.4.x</td>
+  </tr>
+  <tr>
+    <td>数据存储</td>
+    <td>IndexedDB</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>日期处理</td>
+    <td>dayjs</td>
+    <td>1.11.x</td>
+  </tr>
+  <tr>
+    <td>工具函数</td>
+    <td>lodash</td>
+    <td>4.17.x</td>
+  </tr>
+  <tr>
+    <td>构建工具</td>
+    <td>Vite</td>
+    <td>6.x</td>
+  </tr>
+</table>
+
+<h2>5.2 项目架构</h2>
+<pre>
+src/
+├── db/                          # 数据层
+│   ├── index.js                 # 数据库初始化
+│   ├── seed.js                  # 预置数据
+│   └── repositories/            # 数据访问层
+├── store/                       # 状态管理
+├── router/                      # 路由配置
+├── views/                       # 页面组件
+│   ├── login/                   # 登录模块
+│   ├── home/                    # 首页
+│   ├── meeting/                 # 会议模块
+│   ├── trip/                    # 差旅模块
+│   ├── attendance/              # 考勤模块
+│   ├── document/                # 文档模块
+│   ├── todo/                    # 待办模块
+│   ├── announcement/            # 公告模块
+│   └── settings/                # 设置模块
+├── components/                  # 公共组件
+├── style/                       # 全局样式
+├── utils/                       # 工具函数
+└── assets/                      # 静态资源
+</pre>
+
+<h2>5.3 核心架构设计</h2>
+
+<h3>5.3.1 数据层架构</h3>
+<p>采用 Repository 模式封装 IndexedDB 操作：</p>
+<pre>
+// BaseRepository - 基础仓库类
+class BaseRepository {
+  constructor(storeName) {
+    this.storeName = storeName
+  }
+
+  async create(data) { ... }
+  async findById(id) { ... }
+  async findAll() { ... }
+  async update(id, data) { ... }
+  async delete(id) { ... }
+}
+</pre>
+
+<h3>5.3.2 路由架构</h3>
+<pre>
+// 用户端路由
+/user/meeting          // 会议预定
+/user/trip             // 我的差旅
+/user/attendance       // 打卡页面
+/user/document         // 文档查询
+/user/todo             // 待办任务
+/user/announcement     // 公告列表
+/user/settings         // 个人设置
+
+// 管理员端路由
+/admin/meeting         // 会议管理
+/admin/approval        // 审批中心
+/admin/document        // 文档管理
+/admin/attendance      // 考勤管理
+/admin/announcement    // 公告管理
+</pre>
+
+<h3>5.3.3 主题系统</h3>
+<p>使用 CSS 变量实现主题切换：</p>
+<pre>
+:root {
+  --bg-primary: #ffffff;
+  --text-primary: #333333;
+  --border-color: #e5e5e5;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #1a1a1a;
+  --text-primary: #e0e0e0;
+  --border-color: #3a3a3a;
+}
+</pre>
+
+<div class="section-divider"></div>
+
+<h1 id="section6">六、数据库设计</h1>
+
+<h2>6.1 数据表概览</h2>
+<table>
+  <tr>
+    <th>表名</th>
+    <th>用途</th>
+    <th>主要字段</th>
+  </tr>
+  <tr>
+    <td>users</td>
+    <td>用户账号</td>
+    <td>username, password, role, name, 假期余额</td>
+  </tr>
+  <tr>
+    <td>meeting_rooms</td>
+    <td>会议室</td>
+    <td>name, capacity, equipment</td>
+  </tr>
+  <tr>
+    <td>reservations</td>
+    <td>会议预定</td>
+    <td>roomId, userId, subject, start, end</td>
+  </tr>
+  <tr>
+    <td>trips</td>
+    <td>差旅申请</td>
+    <td>destination, reason, 费用, status</td>
+  </tr>
+  <tr>
+    <td>leaves</td>
+    <td>请假申请</td>
+    <td>leaveType, startDate, endDate, status</td>
+  </tr>
+  <tr>
+    <td>attendances</td>
+    <td>打卡记录</td>
+    <td>date, checkInTime, checkOutTime, isLate</td>
+  </tr>
+  <tr>
+    <td>documents</td>
+    <td>文档</td>
+    <td>name, categoryId, fileBlob, fileSize</td>
+  </tr>
+  <tr>
+    <td>document_categories</td>
+    <td>文档分类</td>
+    <td>name</td>
+  </tr>
+  <tr>
+    <td>todos</td>
+    <td>待办任务</td>
+    <td>title, dueDate, priority, status</td>
+  </tr>
+  <tr>
+    <td>announcements</td>
+    <td>公告通知</td>
+    <td>title, content, isTop, category</td>
+  </tr>
+  <tr>
+    <td>user_preferences</td>
+    <td>用户偏好</td>
+    <td>预定偏好、搜索历史</td>
+  </tr>
+  <tr>
+    <td>trip_templates</td>
+    <td>出差模板</td>
+    <td>目的地、费用模板</td>
+  </tr>
+  <tr>
+    <td>holiday_configs</td>
+    <td>节假日配置</td>
+    <td>date, name, isWorkday</td>
+  </tr>
+  <tr>
+    <td>document_view_logs</td>
+    <td>文档浏览记录</td>
+    <td>userId, documentId, viewedAt</td>
+  </tr>
+  <tr>
+    <td>search_histories</td>
+    <td>搜索历史</td>
+    <td>userId, keyword</td>
+  </tr>
+</table>
+
+<div class="section-divider"></div>
+
+<h1 id="section7">七、AI 使用方式说明</h1>
+
+<h2>7.1 AI 工具与平台</h2>
+<p>本项目在开发过程中使用了以下 AI 工具：</p>
+<table>
+  <tr>
+    <th>AI 工具</th>
+    <th>用途</th>
+    <th>使用场景</th>
+  </tr>
+  <tr>
+    <td><strong>Claude (Anthropic)</strong></td>
+    <td>代码生成、架构设计、文档撰写</td>
+    <td>主要开发助手</td>
+  </tr>
+  <tr>
+    <td><strong>Claude Code</strong></td>
+    <td>代码实现、调试、重构</td>
+    <td>交互式编程辅助</td>
+  </tr>
+</table>
+
+<h2>7.2 AI 参与的环节</h2>
+
+<h3>7.2.1 需求分析与设计阶段</h3>
+<table>
+  <tr>
+    <th>环节</th>
+    <th>AI 贡献</th>
+    <th>人工角色</th>
+  </tr>
+  <tr>
+    <td>功能规划</td>
+    <td>提供模块化设计方案、功能拆分建议</td>
+    <td>确认需求优先级、调整功能范围</td>
+  </tr>
+  <tr>
+    <td>数据库设计</td>
+    <td>设计表结构、字段类型、索引建议</td>
+    <td>审核设计合理性、业务适配</td>
+  </tr>
+  <tr>
+    <td>架构设计</td>
+    <td>提供技术选型建议、目录结构规划</td>
+    <td>确认技术方案、权衡性能与复杂度</td>
+  </tr>
+  <tr>
+    <td>文档撰写</td>
+    <td>生成需求文档、设计文档草稿</td>
+    <td>审核内容、补充业务细节</td>
+  </tr>
+</table>
+
+<h3>7.2.2 开发实现阶段</h3>
+<table>
+  <tr>
+    <th>环节</th>
+    <th>AI 贡献</th>
+    <th>人工角色</th>
+  </tr>
+  <tr>
+    <td>页面开发</td>
+    <td>生成 Vue 组件代码、样式代码</td>
+    <td>代码审查、UI 细调、交互优化</td>
+  </tr>
+  <tr>
+    <td>数据层开发</td>
+    <td>生成 Repository 类、数据库操作</td>
+    <td>验证数据逻辑、处理边界情况</td>
+  </tr>
+  <tr>
+    <td>路由配置</td>
+    <td>生成路由定义、权限控制</td>
+    <td>调整路由结构、添加拦截逻辑</td>
+  </tr>
+  <tr>
+    <td>样式开发</td>
+    <td>生成 TailwindCSS 样式、CSS 动画</td>
+    <td>视觉调优、响应式适配</td>
+  </tr>
+  <tr>
+    <td>智能功能</td>
+    <td>设计推荐算法、生成实现代码</td>
+    <td>算法调优、参数配置</td>
+  </tr>
+</table>
+
+<h3>7.2.3 测试与优化阶段</h3>
+<table>
+  <tr>
+    <th>环节</th>
+    <th>AI 贡献</th>
+    <th>人工角色</th>
+  </tr>
+  <tr>
+    <td>问题排查</td>
+    <td>分析错误日志、定位 Bug 原因</td>
+    <td>验证修复方案、回归测试</td>
+  </tr>
+  <tr>
+    <td>性能优化</td>
+    <td>提供优化建议、代码重构</td>
+    <td>实施优化、验证效果</td>
+  </tr>
+  <tr>
+    <td>用户体验</td>
+    <td>提供 UI/UX 改进建议</td>
+    <td>决策采纳方案、细节调整</td>
+  </tr>
+</table>
+
+<h3>7.2.4 文档整理阶段</h3>
+<table>
+  <tr>
+    <th>环节</th>
+    <th>AI 贡献</th>
+    <th>人工角色</th>
+  </tr>
+  <tr>
+    <td>技术文档</td>
+    <td>生成 API 文档、组件说明</td>
+    <td>审核准确性、补充示例</td>
+  </tr>
+  <tr>
+    <td>用户文档</td>
+    <td>生成使用指南、功能说明</td>
+    <td>调整表达方式、添加截图</td>
+  </tr>
+  <tr>
+    <td>项目文档</td>
+    <td>生成 README、设计文档</td>
+    <td>整合内容、格式规范</td>
+  </tr>
+</table>
+
+<h2>7.3 人工负责的核心工作</h2>
+<table>
+  <tr>
+    <th>类别</th>
+    <th>具体工作</th>
+  </tr>
+  <tr>
+    <td><strong>需求定义</strong></td>
+    <td>业务场景分析、功能优先级排序、验收标准制定</td>
+  </tr>
+  <tr>
+    <td><strong>设计决策</strong></td>
+    <td>UI/UX 最终方案、技术选型确认、架构权衡</td>
+  </tr>
+  <tr>
+    <td><strong>代码审查</strong></td>
+    <td>安全性检查、性能评估、代码规范审核</td>
+  </tr>
+  <tr>
+    <td><strong>业务逻辑</strong></td>
+    <td>复杂业务规则实现、边界条件处理</td>
+  </tr>
+  <tr>
+    <td><strong>测试验证</strong></td>
+    <td>功能测试、用户验收测试、兼容性测试</td>
+  </tr>
+  <tr>
+    <td><strong>部署运维</strong></td>
+    <td>环境配置、构建优化</td>
+  </tr>
+</table>
+
+<h2>7.4 AI 与人工协作模式</h2>
+<pre>
+┌─────────────────────────────────────────────────────────┐
+│                    开发协作流程                          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  用户需求 ──→ 人工分析 ──→ AI 辅助设计 ──→ 人工确认     │
+│                              │                          │
+│                              ▼                          │
+│  AI 生成代码 ──→ 人工审查 ──→ 调整优化 ──→ 集成测试     │
+│                              │                          │
+│                              ▼                          │
+│  问题反馈 ──→ AI 分析 ──→ 人工修复 ──→ 验证确认         │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+</pre>
+
+<h2>7.5 AI 使用的最佳实践</h2>
+<ol>
+  <li><strong>明确需求描述</strong>：提供详细的业务场景和功能需求，AI 才能生成准确的设计和代码</li>
+  <li><strong>分步骤实现</strong>：将复杂功能拆分为小任务，逐步由 AI 实现并验证</li>
+  <li><strong>代码审查</strong>：对 AI 生成的代码进行安全性、性能、可维护性审查</li>
+  <li><strong>迭代优化</strong>：通过多轮对话，逐步优化代码质量和用户体验</li>
+  <li><strong>保留决策权</strong>：关键技术决策、架构选型由人工把关</li>
+</ol>
+
+<div class="section-divider"></div>
+
+<h1 id="section8">八、项目迭代历程</h1>
+
+<h2>8.1 迭代版本</h2>
+<table>
+  <tr>
+    <th>版本</th>
+    <th>内容</th>
+    <th>状态</th>
+  </tr>
+  <tr>
+    <td><strong>一期</strong></td>
+    <td>基础架构 + 核心模块</td>
+    <td style="color: #00A870;">✅ 已完成</td>
+  </tr>
+  <tr>
+    <td><strong>二期</strong></td>
+    <td>待办任务 + 公告通知</td>
+    <td style="color: #00A870;">✅ 已完成</td>
+  </tr>
+  <tr>
+    <td><strong>三期</strong></td>
+    <td>主题切换 + 个性化设置</td>
+    <td style="color: #00A870;">✅ 已完成</td>
+  </tr>
+  <tr>
+    <td><strong>四期</strong></td>
+    <td>智能化升级</td>
+    <td style="color: #00A870;">✅ 已完成</td>
+  </tr>
+</table>
+
+<h2>8.2 各迭代核心成果</h2>
+
+<h3>一期：基础功能</h3>
+<ul>
+  <li>IndexedDB 数据层架构</li>
+  <li>登录模块（角色切换）</li>
+  <li>会议预定模块</li>
+  <li>差旅出行模块</li>
+  <li>请假打卡模块</li>
+  <li>文档查询模块</li>
+</ul>
+
+<h3>二期：功能扩展</h3>
+<ul>
+  <li>待办任务管理</li>
+  <li>公告通知系统</li>
+  <li>审批流程完善</li>
+</ul>
+
+<h3>三期：体验优化</h3>
+<ul>
+  <li>日间/夜间主题切换</li>
+  <li>字体大小调节</li>
+  <li>紧凑/宽松布局模式</li>
+  <li>数据备份/恢复</li>
+</ul>
+
+<h3>四期：智能化升级</h3>
+<ul>
+  <li>会议智能推荐</li>
+  <li>差旅智能规划</li>
+  <li>考勤智能提醒</li>
+  <li>文档智能推荐</li>
+  <li>待办智能排序</li>
+  <li>公告智能推送</li>
+</ul>
+
+<div class="section-divider"></div>
+
+<h1>附录</h1>
+
+<h2>A. 预置账号</h2>
+<table>
+  <tr>
+    <th>角色</th>
+    <th>用户名</th>
+    <th>密码</th>
+  </tr>
+  <tr>
+    <td>管理员</td>
+    <td>admin</td>
+    <td>123456</td>
+  </tr>
+  <tr>
+    <td>普通用户</td>
+    <td>user</td>
+    <td>123456</td>
+  </tr>
+</table>
+
+<h2>B. 技术文档索引</h2>
+<ul>
+  <li>TDesign Mobile Vue 文档：https://tdesign.tencent.com/mobile-vue/getting-started</li>
+  <li>Vue 3 官方文档：https://cn.vuejs.org/</li>
+  <li>TailwindCSS 文档：https://tailwindcss.com/docs</li>
+  <li>IndexedDB API：https://developer.mozilla.org/zh-CN/docs/Web/API/IndexedDB_API</li>
+</ul>
+
+<div style="margin-top: 60px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #888;">
+  <p><strong>文档编写</strong>：AI 辅助 + 人工审核</p>
+  <p><strong>最后更新</strong>：2026年4月12日</p>
+</div>
+
+</body>
+</html>

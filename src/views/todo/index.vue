@@ -50,10 +50,15 @@
               <span :class="['text-[22px] px-[10px] py-[2px] rounded-[6px]', getPriorityStyle(todo.priority)]">
                 {{ getPriorityLabel(todo.priority) }}
               </span>
+              <!-- 任务日期 -->
+              <span v-if="todo.taskDate" class="flex items-center gap-[6px] text-[22px] text-[#0052D9]">
+                <CalendarIcon class="text-[20px]" />
+                {{ formatTaskDate(todo.taskDate) }}
+              </span>
               <!-- 截止日期 -->
               <span v-if="todo.dueDate" class="flex items-center gap-[6px] text-[22px] text-[#666]">
                 <TimeIcon class="text-[20px]" />
-                {{ formatDueDate(todo.dueDate) }}
+                截止: {{ formatDueDate(todo.dueDate) }}
               </span>
               <!-- 关联业务 -->
               <span v-if="todo.relatedType" class="text-[22px] text-[#0052D9]">
@@ -80,7 +85,7 @@
 </template>
 
 <script setup>
-import { AddIcon, CheckIcon, CheckCircleIcon, TimeIcon, DeleteIcon } from "tdesign-icons-vue-next"
+import { AddIcon, CheckIcon, CheckCircleIcon, TimeIcon, DeleteIcon, CalendarIcon } from "tdesign-icons-vue-next"
 import { todoRepo } from "@/db/repositories"
 import { useUserStore } from "@/store"
 import { showToast } from "@/utils/common/tools"
@@ -124,6 +129,14 @@ const getPriorityStyle = (priority) => ({
 
 const getRelatedLabel = (type) => ({ leave: '请假', trip: '差旅', meeting: '会议' }[type] || type)
 
+const formatTaskDate = (date) => {
+  const today = dayjs().format('YYYY-MM-DD')
+  const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD')
+  if (date === today) return '今天'
+  if (date === tomorrow) return '明天'
+  return dayjs(date).format('MM月DD日')
+}
+
 const formatDueDate = (date) => {
   const today = dayjs().format('YYYY-MM-DD')
   const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD')
@@ -141,6 +154,7 @@ const handleQuickAdd = async () => {
   await todoRepo.create({
     userId: userStore.userId,
     title: quickAddTitle.value.trim(),
+    taskDate: dayjs().format('YYYY-MM-DD'), // 默认今天
     status: 'pending',
     priority: 2,
     createdAt: new Date()

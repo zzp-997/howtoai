@@ -29,6 +29,12 @@
 
         <div class="bg-white rounded-[24px] mb-[16px] shadow-sm">
           <t-cell-group theme="card">
+            <t-cell title="任务日期" @click="showTaskDatePicker = true">
+              <template #note>
+                <span class="text-[#0052D9]">{{ form.taskDate }}</span>
+                <ChevronRightIcon class="text-[#ccc] ml-[8px]" />
+              </template>
+            </t-cell>
             <t-cell title="截止日期" @click="showDatePicker = true">
               <template #note>
                 <span :class="form.dueDate ? 'text-[#0052D9]' : 'text-[#999]'">{{ form.dueDate || '不设置' }}</span>
@@ -89,6 +95,10 @@
     <t-popup v-model="showDatePicker" placement="bottom" round>
       <t-date-time-picker mode="date" format="YYYY-MM-DD" title="选择截止日期" @confirm="handleDateConfirm" @cancel="showDatePicker = false" />
     </t-popup>
+    <!-- 任务日期选择弹窗 -->
+    <t-popup v-model="showTaskDatePicker" placement="bottom" round>
+      <t-date-time-picker mode="date" format="YYYY-MM-DD" title="选择任务日期" @confirm="handleTaskDateConfirm" @cancel="showTaskDatePicker = false" />
+    </t-popup>
   </Root>
 </template>
 
@@ -105,6 +115,7 @@ const userStore = useUserStore()
 
 const form = reactive({
   title: '',
+  taskDate: dayjs().format('YYYY-MM-DD'), // 任务日期，默认今天
   dueDate: '',
   priority: 2,
   remark: ''
@@ -112,6 +123,7 @@ const form = reactive({
 
 const loading = ref(false)
 const showDatePicker = ref(false)
+const showTaskDatePicker = ref(false)
 const smartSuggestion = ref(null)
 
 const priorities = [
@@ -202,6 +214,11 @@ const handleDateConfirm = (value) => {
   showDatePicker.value = false
 }
 
+const handleTaskDateConfirm = (value) => {
+  form.taskDate = value
+  showTaskDatePicker.value = false
+}
+
 const handleSubmit = async () => {
   if (!form.title.trim()) {
     showToast('请输入待办事项')
@@ -216,6 +233,7 @@ const handleSubmit = async () => {
     await todoRepo.create({
       userId: userStore.userId,
       title: form.title.trim(),
+      taskDate: form.taskDate, // 任务日期
       dueDate: form.dueDate || null,
       priority: form.priority,
       smartPriority,

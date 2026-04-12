@@ -158,7 +158,12 @@ const futureReservations = computed(() => {
     .sort((a, b) => a.start.localeCompare(b.start))
 })
 
-const handleDateConfirm = (value) => { selectedDate.value = value; loadReservations() }
+const handleDateConfirm = (value) => {
+  // TDesign DateTimePicker 返回的是字符串格式 YYYY-MM-DD
+  selectedDate.value = typeof value === 'string' ? value : dayjs(value).format('YYYY-MM-DD')
+  showDatePicker.value = false
+  loadReservations()
+}
 
 const handleDelete = async (r) => {
   if (confirm(`确定删除预定「${r.subject}」吗？`)) {

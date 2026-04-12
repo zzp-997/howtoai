@@ -48,7 +48,7 @@
   --font-text: 24px;           /* 正文 */
   --font-text-sm: 22px;        /* 小正文 */
   --font-desc: 20px;           /* 描述文字 */
-  --font-small: 18px;           /* 最小文字 */
+  --font-small: 18px;          /* 最小文字 */
 
   /* ========== 图标大小系统 ========== */
   --icon-lg: 48px;             /* 大图标 */
@@ -497,6 +497,38 @@
 [data-font-size="large"] {
   #app {
     zoom: 1.15;
+  }
+}
+
+/* ==================== 移动端触摸优化 ==================== */
+/* 移除点击高亮 */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 优化触摸滚动 */
+html, body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+}
+
+/* 防止 iOS Safari 自动调整字体 */
+body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ==================== 移动端专用放大样式 ==================== */
+/* 使用媒体查询，仅在窄屏设备上放大，PC 端保持原样 */
+@media screen and (max-width: 768px) {
+  /* 整体放大 20%，使字体和图标在真机上更清晰 */
+  #app {
+    zoom: 1.2;
+  }
+
+  /* 修复 zoom 导致的底部固定元素问题 */
+  .fixed {
+    zoom: 0.833; /* 1 / 1.2 */
   }
 }
 

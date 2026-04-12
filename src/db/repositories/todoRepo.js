@@ -68,12 +68,14 @@ class TodoRepository extends BaseRepository {
    * @param {string} type 业务类型
    * @param {string} title
    * @param {number} relatedId
+   * @param {string} taskDate 任务日期
    * @returns {Promise<number>}
    */
-  async createFromApproval(userId, type, title, relatedId) {
+  async createFromApproval(userId, type, title, relatedId, taskDate) {
     return this.create({
       userId,
       title,
+      taskDate: taskDate || new Date().toISOString().split('T')[0],
       status: 'pending',
       priority: 2,
       relatedType: type,
