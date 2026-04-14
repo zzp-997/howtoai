@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'OfficeAssistantDB';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 let db = null;
 
@@ -172,6 +172,14 @@ function createStores(database) {
     searchStore.createIndex('userId', 'userId', { unique: false });
     searchStore.createIndex('keyword', 'keyword', { unique: false });
     searchStore.createIndex('searchedAt', 'searchedAt', { unique: false });
+  }
+
+  // 报销单表
+  if (!database.objectStoreNames.contains('expense_claims')) {
+    const expenseStore = database.createObjectStore('expense_claims', { keyPath: 'id', autoIncrement: true });
+    expenseStore.createIndex('userId', 'userId', { unique: false });
+    expenseStore.createIndex('tripId', 'tripId', { unique: false });
+    expenseStore.createIndex('status', 'status', { unique: false });
   }
 
   console.log('数据表创建完成');

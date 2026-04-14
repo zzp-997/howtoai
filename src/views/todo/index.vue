@@ -1,6 +1,6 @@
 <template>
   <Root title="我的待办" back-url="/user">
-    <div class="min-h-screen bg-[#f5f7fa]">
+    <div class="min-h-screen bg-[#f5f7fa] pb-[150px]">
       <!-- 状态切换 -->
       <div class="flex p-[16px] px-[32px] bg-white gap-[12px]">
         <div

@@ -14,6 +14,8 @@
     <div class="flex-1 overflow-auto h-full">
       <slot></slot>
     </div>
+    <!-- 全局 Tabbar -->
+    <Tabbar v-if="showTabbar" />
   </div>
 </template>
 
@@ -22,6 +24,7 @@ import { ChevronLeftIcon } from "tdesign-icons-vue-next"
 import { Dialog } from "tdesign-mobile-vue"
 import { useRoute, useRouter } from "vue-router"
 import { useUserStore } from "@/store"
+import Tabbar from "./Tabbar.vue"
 
 const props = defineProps({
   title: {
@@ -82,5 +85,18 @@ const showNavbar = computed(() => {
 const navbarTitle = computed(() => {
   if (props.title === false) return ""
   return props.title || route.meta?.title || ""
+})
+
+// 显示 Tabbar 的页面（只在主要导航页面显示，内页不显示）
+const showTabbar = computed(() => {
+  const exactPages = [
+    '/user',              // 首页
+    '/admin',             // 管理员首页
+    '/user/todo',         // 待办列表
+    '/user/announcement', // 公告列表
+    '/user/meeting',      // 会议预定
+    '/user/settings'      // 设置页
+  ]
+  return exactPages.includes(route.path)
 })
 </script>

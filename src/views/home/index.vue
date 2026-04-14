@@ -31,21 +31,19 @@
               </div>
             </div>
           </div>
-          <!-- 设置和退出按钮 -->
-          <div class="flex flex-col gap-[12px]">
-            <div class="action-btn w-[56px] h-[56px] bg-white rounded-[16px] flex items-center justify-center shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:scale-105 transition-all cursor-pointer" @click="router.push('/user/settings')">
-              <SettingIcon class="text-[28px] text-[#64748b]" />
-            </div>
-            <div class="action-btn w-[56px] h-[56px] bg-white rounded-[16px] flex items-center justify-center shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:scale-105 transition-all cursor-pointer" @click="handleLogout">
-              <PoweroffIcon class="text-[28px] text-[#64748b]" />
-            </div>
+          <!-- 退出登录按钮 -->
+          <div
+            class="w-[64px] h-[64px] bg-white rounded-[18px] flex items-center justify-center shadow-lg shadow-slate-200/50 border border-slate-100 cursor-pointer hover:shadow-xl hover:scale-105 transition-all"
+            @click="handleLogout"
+          >
+            <PoweroffIcon class="text-[32px] text-[#E34D59]" />
           </div>
         </div>
 
         <!-- 日期信息 -->
         <div class="mt-[20px] flex items-center gap-[12px] text-[24px] text-[#94a3b8]">
-          <div class="w-[32px] h-[32px] bg-gradient-to-br from-[#7B61FF]/10 to-[#9B8AFF]/10 rounded-[8px] flex items-center justify-center">
-            <CalendarIcon class="text-[20px] text-[#7B61FF]" />
+          <div class="w-[36px] h-[36px] bg-gradient-to-br from-[#7B61FF]/10 to-[#9B8AFF]/10 rounded-[10px] flex items-center justify-center">
+            <CalendarIcon class="text-[22px] text-[#7B61FF]" />
           </div>
           <span>{{ todayDate }}</span>
           <span class="px-[10px] py-[4px] bg-gradient-to-r from-[#7B61FF]/10 to-[#9B8AFF]/10 rounded-[8px] text-[#7B61FF] font-medium">{{ todayWeek }}</span>
@@ -129,20 +127,137 @@
         </div>
       </div>
 
+      <!-- 行程提醒（用户端） -->
+      <div v-if="!userStore.isAdmin && visibleTripReminders.length > 0" class="px-[32px] mb-[20px]">
+        <div
+          v-for="reminder in visibleTripReminders"
+          :key="reminder.reminderId"
+          class="trip-reminder-card bg-gradient-to-br from-[#00A870] to-[#2BA471] rounded-[20px] p-[20px] text-white relative overflow-hidden"
+        >
+          <!-- 装饰背景 -->
+          <div class="absolute -top-[20px] -right-[20px] w-[120px] h-[120px] bg-white/10 rounded-full"></div>
+
+          <div class="flex items-start justify-between relative z-10">
+            <div class="flex-1">
+              <div class="flex items-center gap-[10px] mb-[12px]">
+                <div class="w-[40px] h-[40px] bg-white/20 rounded-[12px] flex items-center justify-center">
+                  <LocationIcon class="text-[22px] text-white" />
+                </div>
+                <div>
+                  <div class="text-[18px] opacity-80">明天出发</div>
+                  <div class="text-[28px] font-semibold">{{ reminder.trip.destination }}</div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-[20px] text-[22px] opacity-90 mb-[12px]">
+                <span>{{ reminder.trip.startDate }}</span>
+                <span class="w-[1px] h-[16px] bg-white/30"></span>
+                <span>{{ reminder.trip.reason }}</span>
+              </div>
+
+              <div v-if="reminder.weatherTips" class="text-[20px] opacity-80 mb-[12px]">
+                🌤️ {{ reminder.weatherTips }}
+              </div>
+
+              <div v-if="reminder.suggestions?.length" class="flex flex-wrap gap-[8px]">
+                <span class="text-[18px] opacity-70">建议携带：</span>
+                <span
+                  v-for="item in reminder.suggestions"
+                  :key="item"
+                  class="px-[10px] py-[4px] bg-white/20 rounded-[6px] text-[18px]"
+                >
+                  {{ item }}
+                </span>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-[10px]">
+              <div
+                class="w-[36px] h-[36px] bg-white/20 rounded-full flex items-center justify-center cursor-pointer hover:bg-white/30 transition-colors"
+                @click="router.push(`/user/trip`)"
+              >
+                <ChevronRightIcon class="text-[20px] text-white" />
+              </div>
+              <div
+                class="w-[36px] h-[36px] bg-white/20 rounded-full flex items-center justify-center cursor-pointer hover:bg-white/30 transition-colors"
+                @click="handleDismissReminder(reminder.reminderId)"
+              >
+                <CloseIcon class="text-[18px] text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 报销提醒（用户端） -->
+      <div v-if="!userStore.isAdmin && visibleExpenseReminders.length > 0" class="px-[32px] mb-[20px]">
+        <div
+          v-for="reminder in visibleExpenseReminders"
+          :key="reminder.reminderId"
+          class="expense-reminder-card bg-gradient-to-br from-[#ED7B2F] to-[#F09143] rounded-[20px] p-[20px] text-white relative overflow-hidden"
+        >
+          <!-- 装饰背景 -->
+          <div class="absolute -top-[20px] -right-[20px] w-[120px] h-[120px] bg-white/10 rounded-full"></div>
+
+          <div class="flex items-start justify-between relative z-10">
+            <div class="flex-1">
+              <div class="flex items-center gap-[10px] mb-[12px]">
+                <div class="w-[40px] h-[40px] bg-white/20 rounded-[12px] flex items-center justify-center">
+                  <MoneyIcon class="text-[22px] text-white" />
+                </div>
+                <div>
+                  <div class="text-[18px] opacity-80">{{ reminder.existingClaim ? '报销待提交' : '差旅已结束' }}</div>
+                  <div class="text-[28px] font-semibold">{{ reminder.trip.destination }}</div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-[20px] text-[22px] opacity-90 mb-[12px]">
+                <span>{{ reminder.trip.reason }}</span>
+                <span class="w-[1px] h-[16px] bg-white/30"></span>
+                <span v-if="reminder.daysSinceEnd === 0">今日结束</span>
+                <span v-else-if="reminder.daysSinceEnd === 1">昨天结束</span>
+                <span v-else>{{ reminder.daysSinceEnd }}天前结束</span>
+              </div>
+
+              <div class="text-[20px] opacity-80">
+                {{ reminder.existingClaim ? '草稿待提交，点击继续填写' : '点击填写报销单' }}
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-[10px]">
+              <t-button
+                theme="primary"
+                size="small"
+                class="h-[56px] px-[20px] text-[22px] bg-white text-[#ED7B2F] border-0 rounded-[12px]"
+                @click="handleExpense(reminder)"
+              >
+                {{ reminder.existingClaim ? '继续填写' : '立即报销' }}
+              </t-button>
+              <div
+                class="w-[36px] h-[36px] bg-white/20 rounded-full flex items-center justify-center cursor-pointer hover:bg-white/30 transition-colors mx-auto"
+                @click="handleDismissExpenseReminder(reminder.reminderId)"
+              >
+                <CloseIcon class="text-[18px] text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 待办事项（用户端） -->
       <div v-if="!userStore.isAdmin" class="px-[32px] mb-[28px]">
         <div class="flex items-center justify-between mb-[16px]">
           <div class="flex items-center gap-[12px]">
-            <div class="w-[32px] h-[32px] bg-gradient-to-br from-[#7B61FF] to-[#9B8AFF] rounded-[10px] flex items-center justify-center shadow-lg shadow-[#7B61FF]/30">
-              <Edit1Icon class="text-[18px] text-white" />
+            <div class="w-[40px] h-[40px] bg-gradient-to-br from-[#7B61FF] to-[#9B8AFF] rounded-[12px] flex items-center justify-center shadow-lg shadow-[#7B61FF]/30">
+              <Edit1Icon class="text-[22px] text-white" />
             </div>
-            <span class="text-[30px] font-bold text-[#1e293b]">我的待办</span>
-            <span v-if="pendingTodos.length > 0" class="px-[10px] py-[4px] bg-gradient-to-r from-[#7B61FF] to-[#9B8AFF] text-white text-[22px] rounded-[10px] shadow-lg shadow-[#7B61FF]/30">{{ pendingTodos.length }}</span>
-            <span v-if="overdueTodos.length > 0" class="px-[10px] py-[4px] bg-gradient-to-r from-[#E34D59] to-[#F06956] text-white text-[22px] rounded-[10px] shadow-lg shadow-[#E34D59]/30">{{ overdueTodos.length }}超期</span>
+            <span class="text-[28px] font-bold text-[#1e293b]">我的待办</span>
+            <span v-if="pendingTodos.length > 0" class="px-[10px] py-[4px] bg-gradient-to-r from-[#7B61FF] to-[#9B8AFF] text-white text-[20px] rounded-[10px] shadow-lg shadow-[#7B61FF]/30">{{ pendingTodos.length }}</span>
+            <span v-if="overdueTodos.length > 0" class="px-[10px] py-[4px] bg-gradient-to-r from-[#E34D59] to-[#F06956] text-white text-[20px] rounded-[10px] shadow-lg shadow-[#E34D59]/30">{{ overdueTodos.length }}超期</span>
           </div>
-          <div class="flex items-center gap-[6px] text-[24px] text-[#94a3b8] hover:text-[#0052D9] transition-colors cursor-pointer" @click="router.push('/user/todo')">
+          <div class="flex items-center gap-[6px] text-[22px] text-[#94a3b8] hover:text-[#0052D9] transition-colors cursor-pointer" @click="router.push('/user/todo')">
             <span>全部</span>
-            <ChevronRightIcon class="text-[20px]" />
+            <ChevronRightIcon class="text-[18px]" />
           </div>
         </div>
 
@@ -213,43 +328,104 @@
         </div>
       </div>
 
+      <!-- 智能推荐（用户端） -->
+      <div v-if="!userStore.isAdmin && meetingRecommendations.length > 0" class="px-[32px] mb-[28px]">
+        <div class="flex items-center justify-between mb-[16px]">
+          <div class="flex items-center gap-[12px]">
+            <div class="w-[40px] h-[40px] bg-gradient-to-br from-[#0052D9] to-[#266FE8] rounded-[12px] flex items-center justify-center shadow-lg shadow-[#0052D9]/30">
+              <LightbulbIcon class="text-[22px] text-white" />
+            </div>
+            <span class="text-[28px] font-bold text-[#1e293b]">智能推荐</span>
+          </div>
+          <div class="flex items-center gap-[10px]">
+            <div class="text-[22px] text-[#94a3b8] hover:text-[#0052D9] transition-colors cursor-pointer" @click="handleRefreshRecommend">换一批</div>
+            <ChevronRightIcon class="text-[18px] text-[#cbd5e1]" />
+          </div>
+        </div>
+
+        <div class="bg-white rounded-[24px] shadow-lg shadow-slate-200/50 overflow-hidden border border-slate-100">
+          <!-- 轮播指示器 -->
+          <div v-if="meetingRecommendations.length > 1" class="flex justify-center gap-[8px] pt-[16px]">
+            <div
+              v-for="(_, idx) in meetingRecommendations"
+              :key="idx"
+              :class="['w-[8px] h-[8px] rounded-full transition-all', idx === currentRecommendIndex ? 'bg-[#0052D9] w-[24px]' : 'bg-slate-200']"
+            ></div>
+          </div>
+
+          <!-- 推荐卡片 -->
+          <div class="relative overflow-hidden">
+            <transition name="recommend-slide" mode="out-in">
+              <div
+                :key="currentRecommendIndex"
+                class="p-[24px]"
+              >
+                <div class="flex items-start gap-[20px]">
+                  <!-- 会议室信息 -->
+                  <div class="flex-1">
+                    <div class="text-[26px] font-semibold text-[#1e293b] mb-[8px]">{{ meetingRecommendations[currentRecommendIndex]?.room?.name }}</div>
+                    <div class="flex items-center gap-[16px] mb-[12px]">
+                      <span class="flex items-center gap-[6px] text-[20px] text-[#64748b]">
+                        <UserIcon class="text-[18px]" />
+                        {{ meetingRecommendations[currentRecommendIndex]?.room?.capacity }}人
+                      </span>
+                      <span v-if="meetingRecommendations[currentRecommendIndex]?.room?.equipment?.length" class="text-[20px] text-[#64748b]">
+                        {{ meetingRecommendations[currentRecommendIndex]?.room?.equipment?.slice(0, 2).join('、') }}
+                      </span>
+                    </div>
+                    <div class="text-[20px] text-[#00A870] mb-[8px]">
+                      🕐 {{ meetingRecommendations[currentRecommendIndex]?.availText }}
+                    </div>
+                    <div class="text-[18px] text-[#94a3b8]">
+                      {{ meetingRecommendations[currentRecommendIndex]?.reason }}
+                    </div>
+                  </div>
+                  <!-- 评分和按钮 -->
+                  <div class="flex flex-col items-end gap-[12px]">
+                    <div class="flex items-center gap-[4px]">
+                      <span v-for="n in 5" :key="n" class="text-[18px]" :class="n <= Math.round(meetingRecommendations[currentRecommendIndex]?.matchScore || 0) ? 'text-[#FFB800]' : 'text-[#e5e5e5]'">★</span>
+                    </div>
+                    <t-button theme="primary" size="small" class="h-[44px] px-[20px] text-[20px] rounded-[12px] !bg-gradient-to-r !from-[#0052D9] !to-[#266FE8]" @click="handleQuickBook(meetingRecommendations[currentRecommendIndex])">
+                      一键预定
+                    </t-button>
+                  </div>
+                </div>
+              </div>
+            </transition>
+          </div>
+        </div>
+      </div>
+
       <!-- 功能入口区域 -->
-      <div class="px-[32px] mb-[32px]">
+      <div class="px-[32px] mb-[32px] pb-[150px]">
         <div class="flex items-center justify-between mb-[20px]">
-          <div class="text-[30px] font-bold text-[#1e293b]">{{ userStore.isAdmin ? '管理功能' : '快捷服务' }}</div>
-          <div class="text-[24px] text-[#94a3b8]">{{ menuList.length }} 项</div>
+          <div class="text-[28px] font-bold text-[#1e293b]">{{ userStore.isAdmin ? '管理功能' : '快捷服务' }}</div>
+          <div class="text-[22px] text-[#94a3b8]">{{ menuList.length }} 项</div>
         </div>
 
         <div class="grid grid-cols-2 gap-[16px]">
           <div
             v-for="item in menuList"
             :key="item.id"
-            class="menu-card relative bg-white rounded-[24px] p-[24px] shadow-lg shadow-slate-200/50 overflow-hidden active:scale-[0.97] transition-all cursor-pointer group border border-slate-100 hover:shadow-xl"
+            class="menu-card relative bg-white rounded-[20px] p-[20px] shadow-lg shadow-slate-200/50 overflow-hidden active:scale-[0.97] transition-all cursor-pointer group border border-slate-100 hover:shadow-xl"
             @click="handleMenuClick(item)"
           >
             <div class="absolute top-[-10px] right-[-10px] w-[80px] h-[80px] opacity-[0.03] transform translate-x-[10px] -translate-y-[10px]">
               <component :is="item.icon" class="text-[100px]" :style="{ color: item.color }" />
             </div>
             <div
-              class="w-[56px] h-[56px] rounded-[18px] flex items-center justify-center mb-[16px] relative z-10"
+              class="w-[48px] h-[48px] rounded-[14px] flex items-center justify-center mb-[12px] relative z-10"
               :style="{ background: item.gradient, boxShadow: `0 8px 24px ${item.color}25` }"
             >
-              <component :is="item.icon" class="text-[28px] text-white" />
+              <component :is="item.icon" class="text-[24px] text-white" />
             </div>
-            <div class="text-[28px] font-semibold text-[#1e293b] mb-[6px] relative z-10">{{ item.title }}</div>
-            <div class="text-[22px] text-[#94a3b8] leading-[1.4] relative z-10">{{ item.desc }}</div>
-            <ChevronRightIcon class="absolute bottom-[20px] right-[16px] text-[24px] text-slate-300 group-hover:text-[#0052D9] group-hover:translate-x-1 transition-all" />
+            <div class="text-[24px] font-semibold text-[#1e293b] mb-[4px] relative z-10">{{ item.title }}</div>
+            <div class="text-[20px] text-[#94a3b8] leading-[1.4] relative z-10">{{ item.desc }}</div>
+            <ChevronRightIcon class="absolute bottom-[16px] right-[12px] text-[20px] text-slate-300 group-hover:text-[#0052D9] group-hover:translate-x-1 transition-all" />
           </div>
         </div>
       </div>
 
-      <!-- 底部版本信息 -->
-      <div class="text-center py-[32px]">
-        <div class="inline-flex items-center gap-[8px] text-[22px] text-[#cbd5e1]">
-          <div class="w-[8px] h-[8px] bg-gradient-to-br from-[#00A870] to-[#2BA471] rounded-full shadow-sm shadow-[#00A870]/30"></div>
-          <span>极智协同 v1.0.0</span>
-        </div>
-      </div>
     </div>
 
     <!-- 重要公告弹窗 -->
@@ -311,11 +487,15 @@ import {
   ErrorCircleIcon,
   TimeFilledIcon,
   LoginIcon,
-  LogoutIcon
+  LogoutIcon,
+  LightbulbIcon,
+  UserIcon,
+  MoneyIcon
 } from "tdesign-icons-vue-next"
 import { useUserStore } from "@/store"
 import { showToast } from "@/utils/common/tools"
 import { todoRepo, announcementRepo, ANNOUNCEMENT_CATEGORIES, attendanceRepo, attendanceConfigRepo } from "@/db/repositories"
+import { getMeetingRecommendations, refreshMeetingCache, getTripReminders, getExpenseReminders } from "@/utils/smartRecommend"
 import { useRouter } from "vue-router"
 import dayjs from "dayjs"
 
@@ -379,6 +559,19 @@ const todayRecord = ref(null)
 const workStartTime = ref('09:00')
 const workEndTime = ref('18:00')
 
+// 智能推荐
+const meetingRecommendations = ref([])
+const currentRecommendIndex = ref(0)
+let recommendTimer = null
+
+// 行程提醒
+const tripReminders = ref([])
+const dismissedReminders = ref(new Set())
+
+// 报销提醒
+const expenseReminders = ref([])
+const dismissedExpenseReminders = ref(new Set())
+
 const pendingTodos = computed(() => {
   return todos.value.filter(t => t.status === 'pending').sort((a, b) => {
     if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate)
@@ -397,6 +590,11 @@ const overdueTodos = computed(() => {
 // 显示的待办列表（排除超期的）
 const displayTodos = computed(() => {
   return pendingTodos.value.filter(t => !overdueTodos.value.find(o => o.id === t.id)).slice(0, 5)
+})
+
+// 可见的行程提醒（排除已关闭的）
+const visibleTripReminders = computed(() => {
+  return tripReminders.value.filter(r => !dismissedReminders.value.has(r.reminderId))
 })
 
 // 判断是否超期
@@ -445,6 +643,102 @@ const loadTodayRecord = async () => {
     workStartTime.value = await attendanceConfigRepo.getWorkStartTime()
     workEndTime.value = await attendanceConfigRepo.getWorkEndTime()
   }
+}
+
+// 加载会议推荐
+const loadMeetingRecommendations = async () => {
+  if (!userStore.isAdmin) {
+    meetingRecommendations.value = await getMeetingRecommendations(userStore.userId, { useCache: true })
+    // 启动轮播
+    if (meetingRecommendations.value.length > 1) {
+      startRecommendAutoPlay()
+    }
+  }
+}
+
+// 加载行程提醒
+const loadTripReminders = async () => {
+  if (!userStore.isAdmin) {
+    tripReminders.value = await getTripReminders(userStore.userId)
+    // 从本地存储加载已关闭的提醒
+    const dismissed = localStorage.getItem('dismissedReminders')
+    if (dismissed) {
+      dismissedReminders.value = new Set(JSON.parse(dismissed))
+    }
+  }
+}
+
+// 关闭行程提醒
+const handleDismissReminder = (reminderId) => {
+  dismissedReminders.value.add(reminderId)
+  localStorage.setItem('dismissedReminders', JSON.stringify([...dismissedReminders.value]))
+}
+
+// 加载报销提醒
+const loadExpenseReminders = async () => {
+  if (!userStore.isAdmin) {
+    expenseReminders.value = await getExpenseReminders(userStore.userId)
+    // 从本地存储加载已关闭的提醒
+    const dismissed = localStorage.getItem('dismissedExpenseReminders')
+    if (dismissed) {
+      dismissedExpenseReminders.value = new Set(JSON.parse(dismissed))
+    }
+  }
+}
+
+// 可见的报销提醒（排除已关闭的）
+const visibleExpenseReminders = computed(() => {
+  return expenseReminders.value.filter(r => !dismissedExpenseReminders.value.has(r.reminderId))
+})
+
+// 关闭报销提醒
+const handleDismissExpenseReminder = (reminderId) => {
+  dismissedExpenseReminders.value.add(reminderId)
+  localStorage.setItem('dismissedExpenseReminders', JSON.stringify([...dismissedExpenseReminders.value]))
+}
+
+// 跳转到报销
+const handleExpense = (reminder) => {
+  router.push({ path: '/user/expense/create', query: { tripId: reminder.trip.id } })
+}
+
+// 推荐轮播
+const startRecommendAutoPlay = () => {
+  if (meetingRecommendations.value.length <= 1) return
+  stopRecommendAutoPlay()
+  recommendTimer = setInterval(() => {
+    currentRecommendIndex.value = (currentRecommendIndex.value + 1) % meetingRecommendations.value.length
+  }, 5000)
+}
+
+const stopRecommendAutoPlay = () => {
+  if (recommendTimer) {
+    clearInterval(recommendTimer)
+    recommendTimer = null
+  }
+}
+
+// 刷新推荐
+const handleRefreshRecommend = async () => {
+  refreshMeetingCache()
+  meetingRecommendations.value = await getMeetingRecommendations(userStore.userId, { useCache: false })
+  currentRecommendIndex.value = 0
+  showToast('已刷新推荐')
+}
+
+// 一键预定
+const handleQuickBook = (rec) => {
+  const today = dayjs().format('YYYY-MM-DD')
+  router.push({
+    path: '/user/meeting/create',
+    query: {
+      roomId: rec.room.id,
+      roomName: rec.room.name,
+      date: today,
+      startTime: rec.bestSlot?.start || '09:00',
+      endTime: rec.bestSlot?.end || '10:00'
+    }
+  })
 }
 
 // 上班打卡
@@ -570,10 +864,14 @@ onMounted(() => {
   loadTodos()
   loadAnnouncements()
   loadTodayRecord()
+  loadMeetingRecommendations()
+  loadTripReminders()
+  loadExpenseReminders()
 })
 
 onUnmounted(() => {
   stopAnnouncementAutoPlay()
+  stopRecommendAutoPlay()
 })
 </script>
 
@@ -616,6 +914,22 @@ onUnmounted(() => {
 .slide-fade-leave-to {
   opacity: 0;
   transform: translateY(10px);
+}
+
+/* 推荐卡片轮播过渡 */
+.recommend-slide-enter-active,
+.recommend-slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.recommend-slide-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.recommend-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
 }
 
 /* 卡片悬停效果 */

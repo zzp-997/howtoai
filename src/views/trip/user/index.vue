@@ -60,6 +60,25 @@
           <div v-if="trip.approvalComment" class="px-[24px] py-[16px] bg-[#fff8e1] text-[24px] text-[#666]">
             审批意见：{{ trip.approvalComment }}
           </div>
+
+          <!-- 报销入口（已批准且已结束的差旅） -->
+          <div v-if="trip.status === 'approved' && isTripEnded(trip)" class="px-[24px] py-[16px] border-t border-[#f0f0f0] flex items-center justify-between">
+            <div class="flex items-center gap-[10px]">
+              <MoneyIcon class="text-[28px] text-[#00A870]" />
+              <span class="text-[24px] text-[#666]">
+                {{ hasExpenseClaim(trip.id) ? '报销状态：' + getExpenseStatusLabel(trip.id) : '差旅已结束，可提交报销' }}
+              </span>
+            </div>
+            <t-button
+              :theme="hasExpenseClaim(trip.id) ? 'default' : 'primary'"
+              size="small"
+              class="h-[56px] px-[20px] text-[22px]"
+              :class="!hasExpenseClaim(trip.id) ? '!bg-gradient-to-r !from-[#00A870] !to-[#2BA471]' : ''"
+              @click="handleExpense(trip)"
+            >
+              {{ hasExpenseClaim(trip.id) ? '查看报销' : '填写报销' }}
+            </t-button>
+          </div>
         </div>
       </div>
     </div>
@@ -67,15 +86,17 @@
 </template>
 
 <script setup>
-import { AddIcon, LocationIcon, TimeIcon } from "tdesign-icons-vue-next"
-import { tripRepo } from "@/db/repositories"
+import { AddIcon, LocationIcon, TimeIcon, MoneyIcon, CheckCircleIcon } from "tdesign-icons-vue-next"
+import { tripRepo, expenseClaimRepo } from "@/db/repositories"
 import { useUserStore } from "@/store"
 import { showToast, showConfirmDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
+import dayjs from "dayjs"
 
 const router = useRouter()
 const userStore = useUserStore()
 const trips = ref([])
+const expenseStatusMap = ref({}) // 存储每个差旅的报销状态
 const activeStatus = ref('all')
 const statusTabs = [
   { label: '全部', value: 'all' },
@@ -88,7 +109,38 @@ const getCountByStatus = (status) => status === 'all' ? trips.value.length : tri
 const filteredTrips = computed(() => activeStatus.value === 'all' ? trips.value : trips.value.filter(t => t.status === activeStatus.value))
 const getStatusLabel = (status) => ({ pending: '待审批', approved: '已批准', rejected: '已拒绝' }[status] || status)
 
-const loadData = async () => { trips.value = await tripRepo.findByUserIdOrdered(userStore.userId) }
+// 判断差旅是否已结束
+const isTripEnded = (trip) => {
+  const today = dayjs().format('YYYY-MM-DD')
+  return trip.endDate < today
+}
+
+// 检查差旅是否已有报销单
+const hasExpenseClaim = (tripId) => {
+  return !!expenseStatusMap.value[tripId]
+}
+
+// 获取报销单状态标签
+const getExpenseStatusLabel = (tripId) => {
+  const status = expenseStatusMap.value[tripId]
+  if (status === 'draft') return '草稿'
+  if (status === 'submitted') return '已提交'
+  if (status === 'approved') return '已批准'
+  return null
+}
+
+const loadData = async () => {
+  trips.value = await tripRepo.findByUserIdOrdered(userStore.userId)
+  // 检查每个已批准差旅的报销状态
+  for (const trip of trips.value) {
+    if (trip.status === 'approved') {
+      const claim = await expenseClaimRepo.findByTripId(trip.id)
+      if (claim) {
+        expenseStatusMap.value[trip.id] = claim.status
+      }
+    }
+  }
+}
 
 const handleCancel = async (trip) => {
   try {
@@ -103,6 +155,18 @@ const handleCancel = async (trip) => {
 
 const handleEdit = (trip) => {
   router.push({ path: '/user/trip/create', query: { id: trip.id } })
+}
+
+// 跳转到报销单
+const handleExpense = (trip) => {
+  const existingStatus = expenseStatusMap.value[trip.id]
+  if (existingStatus) {
+    // 已有报销单，直接编辑
+    router.push({ path: '/user/expense/create', query: { tripId: trip.id } })
+  } else {
+    // 新建报销单
+    router.push({ path: '/user/expense/create', query: { tripId: trip.id } })
+  }
 }
 
 onMounted(() => loadData())

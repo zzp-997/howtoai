@@ -1,6 +1,6 @@
 <template>
   <Root title="设置" back-url="/user">
-    <div class="min-h-screen bg-[var(--bg-secondary)]">
+    <div class="min-h-screen bg-[var(--bg-secondary)] pb-[150px]">
       <!-- 外观设置 -->
       <div class="p-[24px] px-[32px]">
         <div class="text-[26px] text-[var(--text-tertiary)] mb-[16px]">外观</div>
@@ -151,7 +151,7 @@
       </div>
 
       <!-- 版本信息 -->
-      <div class="text-center py-[32px]">
+      <div class="text-center py-[32px] pb-[160px]">
         <div class="text-[22px] text-[var(--text-tertiary)]">极智协同 v1.0.0</div>
       </div>
     </div>

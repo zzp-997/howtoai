@@ -23,3 +23,4 @@ export { cityConfigRepo, DEFAULT_CITIES } from './cityConfigRepo';
 export { holidayConfigRepo } from './holidayConfigRepo';
 export { documentViewLogRepo } from './documentViewLogRepo';
 export { searchHistoryRepo } from './searchHistoryRepo';
+export { expenseClaimRepo } from './expenseClaimRepo';

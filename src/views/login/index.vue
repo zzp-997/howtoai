@@ -3,27 +3,13 @@
     <!-- 动态背景 -->
     <div class="absolute inset-0 bg-gradient-to-br from-[#0a1628] via-[#1a2a4a] to-[#0d1b2a]"></div>
 
-    <!-- 波浪动画 -->
-    <div class="waves absolute bottom-0 left-0 right-0 h-[200px]">
-      <div class="wave wave1"></div>
-      <div class="wave wave2"></div>
-      <div class="wave wave3"></div>
+    <!-- 波浪动画 - 精简为单层 -->
+    <div class="waves absolute bottom-0 left-0 right-0 h-[60px]">
+      <div class="wave"></div>
     </div>
 
-    <!-- 浮动粒子 -->
-    <div class="particles absolute inset-0 pointer-events-none">
-      <div v-for="particle in particles" :key="particle.id"
-        class="particle"
-        :style="{
-          left: particle.x + '%',
-          top: particle.y + '%',
-          width: particle.size + 'px',
-          height: particle.size + 'px',
-          animationDuration: particle.duration + 's',
-          animationDelay: particle.delay + 's'
-        }">
-      </div>
-    </div>
+    <!-- Canvas 粒子效果 -->
+    <canvas ref="particleCanvas" class="absolute inset-0 pointer-events-none"></canvas>
 
     <!-- 鼠标跟随光晕 -->
     <div class="glow-effect" :style="{ left: mouseX + 'px', top: mouseY + 'px' }"></div>
@@ -31,7 +17,7 @@
     <!-- 主内容区 -->
     <div class="flex-1 px-[32px] relative z-10 flex flex-col items-center justify-center">
       <!-- Logo 区域 -->
-      <div class="text-center mb-[36px]">
+      <div class="text-center mb-[48px]">
         <div class="logo-container inline-block">
           <div class="logo-ring"></div>
           <div class="logo-ring ring2"></div>
@@ -40,10 +26,8 @@
             <img src="@/assets/image/image.png" alt="Logo" class="w-full h-full object-cover" />
           </div>
         </div>
-        <h1 class="text-[38px] font-bold text-white mt-[24px] mb-[8px] tracking-wide">
-          <span class="title-char" v-for="(char, i) in '极智协同'" :key="i" :style="{ animationDelay: i * 0.1 + 's' }">{{ char }}</span>
-        </h1>
-        <p class="text-[22px] text-white/60 tracking-widest">高效协同 · 智慧办公</p>
+        <h1 class="text-[40px] font-bold text-white mt-[24px] mb-[8px] tracking-wide">极智协同</h1>
+        <p class="text-[20px] text-white/60 tracking-widest">高效协同 · 智慧办公</p>
       </div>
 
       <!-- 登录卡片 -->
@@ -56,7 +40,7 @@
         <div class="flex bg-white/10 rounded-[14px] p-[5px] mb-[24px] border border-white/10 relative z-10">
           <div
             :class="[
-              'flex-1 flex items-center justify-center gap-[10px] py-[18px] rounded-[12px] text-[26px] transition-all duration-300 cursor-pointer relative',
+              'flex-1 flex items-center justify-center gap-[10px] py-[18px] rounded-[12px] text-[28px] transition-all duration-300 cursor-pointer relative',
               selectedRole === 'user'
                 ? 'bg-gradient-to-br from-[#0052D9] to-[#266FE8] text-white shadow-lg'
                 : 'text-white/60 hover:text-white/80'
@@ -68,7 +52,7 @@
           </div>
           <div
             :class="[
-              'flex-1 flex items-center justify-center gap-[10px] py-[18px] rounded-[12px] text-[26px] transition-all duration-300 cursor-pointer relative',
+              'flex-1 flex items-center justify-center gap-[10px] py-[18px] rounded-[12px] text-[28px] transition-all duration-300 cursor-pointer relative',
               selectedRole === 'admin'
                 ? 'bg-gradient-to-br from-[#0052D9] to-[#266FE8] text-white shadow-lg'
                 : 'text-white/60 hover:text-white/80'
@@ -104,7 +88,7 @@
               placeholder="请输入密码"
               :bordered="false"
               clearable
-              class="flex-1 text-white placeholder:text-white/40  h-[32px] font-[16px]"
+              class="flex-1 text-white placeholder:text-white/40 h-[32px]"
             />
           </div>
         </div>
@@ -123,18 +107,18 @@
 
         <!-- 测试账号提示 -->
         <div class="text-center relative z-10">
-          <div class="text-[14px] text-white/35 mb-[10px]">测试账号</div>
-          <div class="inline-flex items-center gap-[20px] text-[18px] text-white/50">
+          <div class="text-[24px] text-white/35 mb-[10px]">测试账号</div>
+          <div class="inline-flex items-center gap-[20px] text-[20px] text-white/50">
             <span class="flex items-center gap-[6px]">
-              <span class="text-[#6ba3e8] font-medium">admin</span>
+              <span class="text-[#6ba3e8] font-medium text-[20px]">admin</span>
               <span class="text-white/30">/</span>
-              <span>123456</span>
+              <span class="text-[20px]">123456</span>
             </span>
             <span class="w-[1px] h-[12px] bg-white/20"></span>
             <span class="flex items-center gap-[6px]">
-              <span class="text-[#4dd9a0] font-medium">user</span>
+              <span class="text-[#4dd9a0] font-medium text-[20px]">user</span>
               <span class="text-white/30">/</span>
-              <span>123456</span>
+              <span class="text-[20px]">123456</span>
             </span>
           </div>
         </div>
@@ -149,7 +133,7 @@
 </template>
 
 <script setup>
-import { UserIcon, LockOnIcon, UserTalkIcon, BuildingIcon } from "tdesign-icons-vue-next"
+import { UserIcon, LockOnIcon, UserTalkIcon } from "tdesign-icons-vue-next"
 import { useUserStore } from "@/store"
 import { showToast, showErrorDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
@@ -170,23 +154,58 @@ const loading = ref(false)
 const mouseX = ref(0)
 const mouseY = ref(0)
 
-// 粒子数据
-const particles = ref([])
+// Canvas 粒子
+const particleCanvas = ref(null)
+let animationId = null
 
-// 生成粒子
-const generateParticles = () => {
-  const result = []
-  for (let i = 0; i < 30; i++) {
-    result.push({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 6 + 2,
-      duration: Math.random() * 10 + 10,
-      delay: Math.random() * 5
+// 初始化粒子
+const initParticles = () => {
+  const canvas = particleCanvas.value
+  if (!canvas) return
+
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+
+  const ctx = canvas.getContext('2d')
+  const particles = []
+
+  // 生成 20 个粒子
+  for (let i = 0; i < 20; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 4 + 2,
+      speedY: Math.random() * 0.5 + 0.3,
+      speedX: (Math.random() - 0.5) * 0.2,
+      opacity: Math.random() * 0.5 + 0.3
     })
   }
-  particles.value = result
+
+  // 动画循环
+  const animate = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    particles.forEach(p => {
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+      ctx.fillStyle = `rgba(0, 82, 217, ${p.opacity})`
+      ctx.fill()
+
+      // 上升动画
+      p.y -= p.speedY
+      p.x += p.speedX
+
+      // 超出边界时重置
+      if (p.y < -p.size) {
+        p.y = canvas.height + p.size
+        p.x = Math.random() * canvas.width
+      }
+    })
+
+    animationId = requestAnimationFrame(animate)
+  }
+
+  animate()
 }
 
 // 鼠标移动处理
@@ -223,12 +242,20 @@ const handleLogin = async () => {
 }
 
 onMounted(() => {
-  generateParticles()
+  initParticles()
+  window.addEventListener('resize', initParticles)
+})
+
+onUnmounted(() => {
+  if (animationId) {
+    cancelAnimationFrame(animationId)
+  }
+  window.removeEventListener('resize', initParticles)
 })
 </script>
 
 <style scoped>
-/* 波浪动画 */
+/* 波浪动画 - 单层 */
 .waves {
   overflow: hidden;
 }
@@ -238,60 +265,14 @@ onMounted(() => {
   bottom: 0;
   left: 0;
   width: 200%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent 0%, rgba(0, 82, 217, 0.3) 50%, transparent 100%);
-  border-radius: 50% 50% 0 0;
-  animation: wave-move 8s linear infinite;
-}
-
-.wave1 {
-  height: 80px;
-  background: linear-gradient(90deg, transparent 0%, rgba(0, 82, 217, 0.2) 50%, transparent 100%);
-  animation-duration: 12s;
-}
-
-.wave2 {
   height: 60px;
-  background: linear-gradient(90deg, transparent 0%, rgba(38, 111, 232, 0.25) 50%, transparent 100%);
-  animation-duration: 10s;
-  animation-delay: -2s;
-}
-
-.wave3 {
-  height: 40px;
-  background: linear-gradient(90deg, transparent 0%, rgba(0, 168, 112, 0.15) 50%, transparent 100%);
-  animation-duration: 8s;
-  animation-delay: -4s;
+  background: linear-gradient(90deg, transparent 0%, rgba(0, 82, 217, 0.25) 50%, transparent 100%);
+  animation: wave-move 12s linear infinite;
 }
 
 @keyframes wave-move {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
-}
-
-/* 粒子动画 */
-.particle {
-  position: absolute;
-  background: radial-gradient(circle, rgba(0, 82, 217, 0.8) 0%, transparent 70%);
-  border-radius: 50%;
-  animation: float-particle linear infinite;
-}
-
-@keyframes float-particle {
-  0% {
-    transform: translateY(0) translateX(0);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-100vh) translateX(20px);
-    opacity: 0;
-  }
 }
 
 /* 鼠标光晕 */
@@ -337,21 +318,6 @@ onMounted(() => {
   100% { transform: rotate(360deg); }
 }
 
-/* 标题字符动画 */
-.title-char {
-  display: inline-block;
-  animation: char-appear 0.5s ease-out forwards;
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-@keyframes char-appear {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* 登录按钮特效 */
 .login-btn::before {
   content: '';
@@ -380,22 +346,6 @@ onMounted(() => {
   background: linear-gradient(to bottom right, rgba(0, 82, 217, 0.35), rgba(38, 111, 232, 0.35)) !important;
 }
 
-/* 卡片入场动画 */
-.login-card {
-  animation: card-appear 0.6s ease-out;
-}
-
-@keyframes card-appear {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 /* TDesign 输入框样式覆盖 */
 :deep(.t-input) {
   background: transparent !important;
@@ -403,12 +353,12 @@ onMounted(() => {
 
 :deep(.t-input__inner) {
   color: white !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
 }
 
 :deep(.t-input__inner::placeholder) {
   color: rgba(255, 255, 255, 0.4) !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
 }
 
 :deep(.t-input__clear) {
@@ -420,7 +370,7 @@ onMounted(() => {
 :deep(.t-input__inner:focus-within),
 :deep(.t-input--focused .t-input__inner),
 :deep(.t-input:focus-within .t-input__inner) {
-  font-size: 14px !important;
+  font-size: 16px !important;
 }
 
 /* 自动填充状态 */
@@ -428,7 +378,7 @@ onMounted(() => {
 :deep(.t-input__inner:-webkit-autofill:hover),
 :deep(.t-input__inner:-webkit-autofill:focus),
 :deep(.t-input__inner:-webkit-autofill:active) {
-  font-size: 14px !important;
+  font-size: 16px !important;
   -webkit-text-fill-color: white !important;
   transition: background-color 5000s ease-in-out 0s;
 }
@@ -446,9 +396,5 @@ onMounted(() => {
 [data-theme="dark"] .input-wrapper {
   background: rgba(30, 41, 59, 0.4) !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-[data-theme="dark"] .particle {
-  background: radial-gradient(circle, rgba(107, 163, 232, 0.6) 0%, transparent 70%);
 }
 </style>

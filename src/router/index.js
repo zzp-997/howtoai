@@ -85,6 +85,17 @@ const userRoutes = [
       role: "user"
     }
   },
+  // 报销模块
+  {
+    path: "/user/expense/create",
+    name: "userExpenseCreate",
+    component: () => import("@/views/expense/create.vue"),
+    meta: {
+      title: "填写报销单",
+      requiresAuth: true,
+      role: "user"
+    }
+  },
   // 请假模块
   {
     path: "/user/leave",

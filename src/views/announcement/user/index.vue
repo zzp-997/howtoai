@@ -1,6 +1,6 @@
 <template>
   <Root title="公告通知" back-url="/user">
-    <div class="min-h-screen bg-[#f5f7fa]">
+    <div class="min-h-screen bg-[#f5f7fa] pb-[150px]">
       <!-- 未读提示 -->
       <div v-if="unreadCount > 0" class="flex items-center gap-[12px] p-[20px] px-[32px] bg-[#FFF3E0]">
         <InfoCircleIcon class="text-[28px] text-[#ED7B2F]" />

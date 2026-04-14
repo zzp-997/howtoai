@@ -1,40 +1,36 @@
 <template>
   <Root title="会议预定" :back-url="'/user'">
-    <div class="min-h-screen bg-[#f5f7fa] pb-[140px]">
+    <div class="min-h-screen bg-[#f5f7fa] pb-[150px]">
       <!-- 日期选择卡片 -->
       <div class="bg-gradient-to-br from-[#0052D9] to-[#266FE8] p-[32px] text-white">
+        <!-- 标题栏 -->
         <div class="flex justify-between items-center mb-[24px]">
-          <div class="text-[28px] opacity-80">选择日期</div>
-          <div class="flex items-center gap-[8px] text-[30px] font-semibold px-[20px] py-[12px] bg-white/15 rounded-[12px]" @click="showDatePicker = true">
-            {{ formatDisplayDate(selectedDate) }}
-            <ChevronDownIcon class="text-[28px]" />
+          <div>
+            <div class="text-[26px] opacity-80">选择日期</div>
+            <div class="text-[36px] font-semibold mt-[8px]">{{ formatDisplayDate(selectedDate) }} {{ getWeekDay(selectedDate) }}</div>
+          </div>
+          <div
+            class="w-[60px] h-[60px] bg-white/20 rounded-[16px] flex flex-col items-center justify-center cursor-pointer active:bg-white/30 transition-colors"
+            @click="showCalendarPopup = true"
+          >
+            <CalendarIcon class="text-[26px]" />
+            <div class="text-[16px] mt-[2px]">日历</div>
           </div>
         </div>
 
-        <!-- 日期滑动区域 -->
-        <div class="relative">
-          <div class="flex gap-[8px] overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" ref="dateScrollRef">
-            <div
-              v-for="day in displayDays"
-              :key="day.date"
-              :ref="el => { if (day.date === selectedDate) selectedDayRef = el }"
-              :class="[
-                'flex-shrink-0 text-center py-[16px] px-[12px] rounded-[12px] relative min-w-[70px] cursor-pointer transition-all',
-                day.date === selectedDate ? 'bg-white text-[#0052D9]' : 'bg-white/10'
-              ]"
-              @click="selectedDate = day.date"
-            >
-              <div class="text-[22px] opacity-80 mb-[8px]">{{ day.weekLabel }}</div>
-              <div class="text-[32px] font-semibold">{{ day.dayNum }}</div>
-              <div v-if="day.isToday" class="absolute bottom-[8px] left-1/2 -translate-x-1/2 w-[6px] h-[6px] bg-white rounded-full"></div>
-            </div>
-          </div>
-          <!-- 左右滑动按钮 -->
-          <div class="absolute left-0 top-1/2 -translate-y-1/2 w-[40px] h-[40px] bg-black/30 rounded-full flex items-center justify-center" @click="scrollDays(-7)">
-            <ChevronLeftIcon class="text-[24px] text-white" />
-          </div>
-          <div class="absolute right-0 top-1/2 -translate-y-1/2 w-[40px] h-[40px] bg-black/30 rounded-full flex items-center justify-center" @click="scrollDays(7)">
-            <ChevronRightIcon class="text-[24px] text-white" />
+        <!-- 快速日期选择 -->
+        <div class="flex gap-[10px] overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div
+            v-for="day in quickDays"
+            :key="day.date"
+            :class="[
+              'flex-shrink-0 text-center py-[16px] px-[20px] rounded-[12px] cursor-pointer transition-all min-w-[80px]',
+              day.date === selectedDate ? 'bg-white text-[#0052D9] shadow-lg' : 'bg-white/15 active:bg-white/25'
+            ]"
+            @click="selectedDate = day.date"
+          >
+            <div class="text-[18px] opacity-70 mb-[4px]">{{ day.weekLabel }}</div>
+            <div class="text-[28px] font-semibold">{{ day.dayNum }}</div>
           </div>
         </div>
       </div>
@@ -126,32 +122,96 @@
         </div>
       </div>
 
-      <!-- 底部操作栏 -->
-      <div class="fixed bottom-0 left-0 right-0 px-[32px] py-[24px] pb-safe bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
-        <t-button theme="primary" block size="large" class="h-[88px] text-[30px] rounded-[16px]" @click="router.push('/user/meeting/my')">
-          <template #icon><CalendarIcon /></template>
-          我的预定
-        </t-button>
+      <!-- 悬浮按钮组 -->
+      <div class="fixed right-[32px] bottom-[150px] flex flex-col gap-[16px] z-50">
+        <!-- 我的预定 -->
+        <div
+          class="w-[60px] h-[60px] bg-gradient-to-br from-[#0052D9] to-[#266FE8] rounded-full flex items-center justify-center shadow-lg shadow-[#0052D9]/30 cursor-pointer hover:scale-110 transition-transform"
+          @click="router.push('/user/meeting/my')"
+        >
+          <CalendarIcon class="text-[28px] text-white" />
+        </div>
+        <!-- 智能推荐 -->
+        <div
+          class="w-[60px] h-[60px] bg-gradient-to-br from-[#7B61FF] to-[#9B8AFF] rounded-full flex items-center justify-center shadow-lg shadow-[#7B61FF]/30 cursor-pointer hover:scale-110 transition-transform"
+          @click="showRecommendPopup = true"
+        >
+          <LightbulbIcon class="text-[28px] text-white" />
+        </div>
       </div>
     </div>
 
-    <!-- 日期选择弹窗 -->
-    <t-popup v-model="showDatePicker" placement="bottom" round>
-      <t-date-time-picker
-        mode="date"
-        :start="datePickerStart"
-        :end="datePickerEnd"
-        format="YYYY-MM-DD"
-        title="选择日期"
-        @confirm="handleDateConfirm"
-        @cancel="showDatePicker = false"
-      />
+    <!-- 日历选择弹窗 -->
+    <t-calendar
+      v-model:visible="showCalendarPopup"
+      v-model="calendarValue"
+      :min-date="minDate"
+      :max-date="maxDate"
+      type="single"
+      title="选择预定日期"
+      @confirm="handleCalendarConfirm"
+    />
+
+    <!-- 智能推荐弹窗 -->
+    <t-popup v-model="showRecommendPopup" placement="bottom" round>
+      <div class="bg-white rounded-t-[32px] p-[32px] pb-[48px]">
+        <div class="flex items-center justify-between mb-[24px]">
+          <div class="flex items-center gap-[12px]">
+            <div class="w-[48px] h-[48px] bg-gradient-to-br from-[#7B61FF] to-[#9B8AFF] rounded-[14px] flex items-center justify-center">
+              <LightbulbIcon class="text-[26px] text-white" />
+            </div>
+            <div>
+              <div class="text-[32px] font-bold text-[#333]">智能推荐</div>
+              <div class="text-[22px] text-[#999]">为您推荐以下会议室</div>
+            </div>
+          </div>
+          <div class="w-[40px] h-[40px] bg-[#f5f5f5] rounded-full flex items-center justify-center" @click="showRecommendPopup = false">
+            <ChevronDownIcon class="text-[24px] text-[#999]" />
+          </div>
+        </div>
+
+        <div v-if="recommendedRooms.length === 0" class="text-center py-[40px]">
+          <div class="text-[26px] text-[#999]">暂无推荐</div>
+          <div class="text-[22px] text-[#bbb] mt-[8px]">当前时段暂无空闲会议室</div>
+        </div>
+
+        <div v-else class="flex flex-col gap-[16px]">
+          <div
+            v-for="(rec, idx) in recommendedRooms"
+            :key="rec.room.id"
+            class="p-[20px] bg-[#f8fafc] rounded-[20px] border border-[#e5e5e5]"
+          >
+            <div class="flex items-start justify-between mb-[12px]">
+              <div>
+                <div class="flex items-center gap-[8px]">
+                  <span class="text-[28px] font-semibold text-[#333]">{{ rec.room.name }}</span>
+                  <span class="px-[10px] py-[2px] bg-[#7B61FF]/10 text-[#7B61FF] text-[18px] rounded-[6px]">
+                    推荐 {{ idx + 1 }}
+                  </span>
+                </div>
+                <div class="text-[22px] text-[#999] mt-[4px]">
+                  {{ rec.room.capacity }}人 · {{ rec.availText }}
+                </div>
+              </div>
+              <div class="flex items-center gap-[4px]">
+                <span v-for="n in 5" :key="n" class="text-[18px]" :class="n <= Math.round(rec.matchScore) ? 'text-[#FFB800]' : 'text-[#e5e5e5]'">★</span>
+              </div>
+            </div>
+            <div class="text-[20px] text-[#666] mb-[16px]">
+              {{ rec.room.equipment?.length ? '设备：' + rec.room.equipment.join('、') : '' }}
+            </div>
+            <t-button theme="primary" size="medium" block class="h-[60px] text-[24px] rounded-[12px]" @click="handleQuickBookFromPopup(rec)">
+              立即预定
+            </t-button>
+          </div>
+        </div>
+      </div>
     </t-popup>
   </Root>
 </template>
 
 <script setup>
-import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, FolderIcon, UserIcon, ToolsIcon, CheckCircleIcon, CalendarIcon, LightbulbIcon } from "tdesign-icons-vue-next"
+import { ChevronDownIcon, FolderIcon, UserIcon, ToolsIcon, CheckCircleIcon, CalendarIcon, LightbulbIcon } from "tdesign-icons-vue-next"
 import { meetingRoomRepo, reservationRepo, userPreferenceRepo } from "@/db/repositories"
 import { useUserStore } from "@/store"
 import { useRouter } from "vue-router"
@@ -162,48 +222,45 @@ const userStore = useUserStore()
 const today = dayjs()
 const todayStr = today.format("YYYY-MM-DD")
 const selectedDate = ref(todayStr)
-const datePickerStart = todayStr
-const datePickerEnd = today.add(30, "day").format("YYYY-MM-DD")
-const showDatePicker = ref(false)
+const calendarValue = ref(new Date())
+const minDate = new Date()
+const maxDate = today.add(365, "day").toDate()
 const rooms = ref([])
 const roomReservations = ref({})
-const dateScrollRef = ref(null)
-const selectedDayRef = ref(null)
-const startOffset = ref(0)
 const recommendedRooms = ref([])
 const userPreference = ref(null)
+const showRecommendPopup = ref(false)
+const showCalendarPopup = ref(false)
 
-const displayDays = computed(() => {
+const formatTime = (datetime) => datetime.split(' ')[1]
+const formatDisplayDate = (date) => dayjs(date).format('MM月DD日')
+const getWeekDay = (date) => {
+  const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  return weekDays[dayjs(date).day()]
+}
+
+// 快速日期选择（显示14天）
+const quickDays = computed(() => {
   const days = []
   const weekLabels = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-  for (let i = startOffset.value; i < startOffset.value + 14; i++) {
+  for (let i = 0; i < 14; i++) {
     const d = today.add(i, 'day')
-    const isToday = i === 0
     days.push({
       date: d.format('YYYY-MM-DD'),
-      weekLabel: isToday ? '今天' : weekLabels[d.day()],
+      weekLabel: i === 0 ? '今天' : weekLabels[d.day()],
       dayNum: d.date(),
-      isToday,
-      offset: i
+      isToday: i === 0
     })
   }
   return days
 })
 
-const formatDisplayDate = (date) => dayjs(date).format('MM月DD日')
-const formatTime = (datetime) => datetime.split(' ')[1]
-
-const scrollDays = (delta) => {
-  const newOffset = Math.max(0, Math.min(30 - 14, startOffset.value + delta))
-  startOffset.value = newOffset
-}
-
-const scrollToSelected = () => {
-  nextTick(() => {
-    if (selectedDayRef.value) {
-      selectedDayRef.value.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
-    }
-  })
+// 日历确认选择
+const handleCalendarConfirm = (value) => {
+  if (value) {
+    selectedDate.value = dayjs(value).format('YYYY-MM-DD')
+  }
+  showCalendarPopup.value = false
 }
 
 const loadRooms = async () => { rooms.value = await meetingRoomRepo.findAll() }
@@ -306,26 +363,28 @@ const calculateRecommendations = async () => {
     .slice(0, 3)
 }
 
-const handleDateConfirm = (value) => {
-  selectedDate.value = value
-  showDatePicker.value = false
-  const offset = dayjs(value).diff(today, 'day')
-  if (offset < startOffset.value) {
-    startOffset.value = Math.max(0, offset - 3)
-  } else if (offset >= startOffset.value + 14) {
-    startOffset.value = Math.min(30 - 14, offset - 10)
-  }
-  loadReservations()
-}
-
 const handleBook = (room) => {
   router.push({ path: '/user/meeting/create', query: { roomId: room.id, roomName: room.name, date: selectedDate.value } })
+}
+
+// 从弹窗快捷预定
+const handleQuickBookFromPopup = (rec) => {
+  showRecommendPopup.value = false
+  router.push({
+    path: '/user/meeting/create',
+    query: {
+      roomId: rec.room.id,
+      roomName: rec.room.name,
+      date: selectedDate.value,
+      startTime: rec.bestSlot?.start,
+      endTime: rec.bestSlot?.end
+    }
+  })
 }
 
 watch(selectedDate, async () => {
   await loadReservations()
   await calculateRecommendations()
-  scrollToSelected()
 })
 
 onMounted(async () => {
