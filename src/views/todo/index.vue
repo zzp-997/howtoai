@@ -75,7 +75,7 @@
       </div>
 
       <!-- 底部新建按钮 -->
-      <div class="fixed bottom-[32px] right-[32px]">
+      <div class="fixed bottom-[152px] right-[32px]">
         <div class="w-[100px] h-[100px] bg-gradient-to-br from-[#0052D9] to-[#266FE8] rounded-full flex items-center justify-center shadow-lg shadow-[#0052D9]/30" @click="router.push('/user/todo/create')">
           <AddIcon class="text-[48px] text-white" />
         </div>

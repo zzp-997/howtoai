@@ -23,17 +23,15 @@
 
         <!-- 会议 - 中间突出 -->
         <div class="flex flex-col items-center justify-end relative">
+          <!-- 光环容器 -->
           <div
-            :class="[
-              'absolute -top-[30px] w-[80px] h-[80px] rounded-[22px] flex flex-col items-center justify-center cursor-pointer transition-all shadow-lg',
-              isActive('/user/meeting')
-                ? 'bg-gradient-to-br from-[#0052D9] to-[#266FE8] shadow-[#0052D9]/40'
-                : 'bg-gradient-to-br from-[#0052D9] to-[#266FE8] shadow-[#0052D9]/30'
-            ]"
+            :class="['meeting-btn-wrapper absolute -top-[35px]', isActive('/user/meeting') ? 'active' : '']"
             @click="handleTabClick({ path: '/user/meeting' })"
           >
-            <CalendarIcon class="text-[36px] text-white mb-[4px]" />
-            <span class="text-[20px] text-white font-medium">会议</span>
+            <div class="meeting-btn flex flex-col items-center justify-center cursor-pointer">
+              <CalendarIcon class="text-[36px] text-white mb-[4px]" />
+              <span class="text-[20px] text-white font-medium">会议</span>
+            </div>
           </div>
           <div class="h-[20px]"></div>
         </div>
@@ -84,5 +82,59 @@ const handleTabClick = (item) => {
 <style scoped>
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 会议按钮包装器 */
+.meeting-btn-wrapper {
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* 会议按钮本体 */
+.meeting-btn {
+  width: 80px;
+  height: 80px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #0052D9, #266FE8);
+  box-shadow: 0 4px 15px rgba(0, 82, 217, 0.3);
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+/* 底部弧形指示条 */
+.meeting-btn-wrapper.active::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: linear-gradient(90deg, #00D9FF, #0052D9);
+  border-radius: 2px;
+  animation: indicator-in 0.3s ease-out;
+}
+
+/* 指示条入场动画 */
+@keyframes indicator-in {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 40px;
+    opacity: 1;
+  }
+}
+
+/* 选中时按钮轻微上移 */
+.meeting-btn-wrapper.active .meeting-btn {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 82, 217, 0.4);
 }
 </style>

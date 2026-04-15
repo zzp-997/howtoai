@@ -8,7 +8,8 @@ const baseRoutes = [
     component: () => import("@/views/login/index.vue"),
     meta: {
       title: "登录",
-      requiresAuth: false
+      requiresAuth: false,
+      level: 0
     }
   },
   {
@@ -16,7 +17,8 @@ const baseRoutes = [
     name: "404",
     component: () => import("@/views/404.vue"),
     meta: {
-      title: "页面不存在"
+      title: "页面不存在",
+      level: 0
     }
   }
 ];
@@ -30,7 +32,8 @@ const userRoutes = [
     meta: {
       title: "首页",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 1
     }
   },
   // 会议模块
@@ -41,7 +44,8 @@ const userRoutes = [
     meta: {
       title: "会议预定",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 1
     }
   },
   {
@@ -51,7 +55,8 @@ const userRoutes = [
     meta: {
       title: "新建预定",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 2
     }
   },
   {
@@ -61,7 +66,8 @@ const userRoutes = [
     meta: {
       title: "我的预定",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 2
     }
   },
   // 差旅模块
@@ -72,7 +78,8 @@ const userRoutes = [
     meta: {
       title: "我的差旅",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 2
     }
   },
   {
@@ -82,7 +89,8 @@ const userRoutes = [
     meta: {
       title: "新建差旅",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 2
     }
   },
   // 报销模块
@@ -93,7 +101,8 @@ const userRoutes = [
     meta: {
       title: "填写报销单",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 2
     }
   },
   // 请假模块
@@ -104,7 +113,8 @@ const userRoutes = [
     meta: {
       title: "我的请假",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 2
     }
   },
   {
@@ -114,7 +124,8 @@ const userRoutes = [
     meta: {
       title: "新建请假",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 2
     }
   },
   // 打卡模块
@@ -125,7 +136,8 @@ const userRoutes = [
     meta: {
       title: "考勤打卡",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 2
     }
   },
   {
@@ -135,7 +147,8 @@ const userRoutes = [
     meta: {
       title: "打卡日历",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 2
     }
   },
   {
@@ -145,7 +158,8 @@ const userRoutes = [
     meta: {
       title: "补卡申请",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 2
     }
   },
   // 文档模块
@@ -156,7 +170,8 @@ const userRoutes = [
     meta: {
       title: "文档查询",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 2
     }
   },
   // 待办模块
@@ -167,7 +182,8 @@ const userRoutes = [
     meta: {
       title: "我的待办",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 1
     }
   },
   {
@@ -177,7 +193,8 @@ const userRoutes = [
     meta: {
       title: "新建待办",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 2
     }
   },
   // 公告模块
@@ -188,7 +205,8 @@ const userRoutes = [
     meta: {
       title: "公告通知",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 1
     }
   },
   {
@@ -198,7 +216,8 @@ const userRoutes = [
     meta: {
       title: "公告详情",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 2
     }
   },
   // 设置模块
@@ -209,7 +228,8 @@ const userRoutes = [
     meta: {
       title: "设置",
       requiresAuth: true,
-      role: "user"
+      role: "user",
+      level: 1
     }
   }
 ];
@@ -223,7 +243,8 @@ const adminRoutes = [
     meta: {
       title: "首页",
       requiresAuth: true,
-      role: "admin"
+      role: "admin",
+      level: 1
     }
   },
   // 会议管理
@@ -234,7 +255,8 @@ const adminRoutes = [
     meta: {
       title: "会议管理",
       requiresAuth: true,
-      role: "admin"
+      role: "admin",
+      level: 2
     }
   },
   {
@@ -244,7 +266,8 @@ const adminRoutes = [
     meta: {
       title: "会议室管理",
       requiresAuth: true,
-      role: "admin"
+      role: "admin",
+      level: 2
     }
   },
   // 审批中心
@@ -255,7 +278,8 @@ const adminRoutes = [
     meta: {
       title: "审批中心",
       requiresAuth: true,
-      role: "admin"
+      role: "admin",
+      level: 2
     }
   },
   {
@@ -265,7 +289,8 @@ const adminRoutes = [
     meta: {
       title: "差旅审批",
       requiresAuth: true,
-      role: "admin"
+      role: "admin",
+      level: 2
     }
   },
   {
@@ -275,7 +300,8 @@ const adminRoutes = [
     meta: {
       title: "请假审批",
       requiresAuth: true,
-      role: "admin"
+      role: "admin",
+      level: 2
     }
   },
   {
@@ -285,7 +311,8 @@ const adminRoutes = [
     meta: {
       title: "补卡审批",
       requiresAuth: true,
-      role: "admin"
+      role: "admin",
+      level: 2
     }
   },
   // 文档管理
@@ -296,7 +323,8 @@ const adminRoutes = [
     meta: {
       title: "文档管理",
       requiresAuth: true,
-      role: "admin"
+      role: "admin",
+      level: 2
     }
   },
   {
@@ -306,7 +334,8 @@ const adminRoutes = [
     meta: {
       title: "分类管理",
       requiresAuth: true,
-      role: "admin"
+      role: "admin",
+      level: 2
     }
   },
   // 考勤管理
@@ -317,7 +346,8 @@ const adminRoutes = [
     meta: {
       title: "考勤管理",
       requiresAuth: true,
-      role: "admin"
+      role: "admin",
+      level: 2
     }
   },
   {
@@ -327,7 +357,8 @@ const adminRoutes = [
     meta: {
       title: "考勤报表",
       requiresAuth: true,
-      role: "admin"
+      role: "admin",
+      level: 2
     }
   },
   // 公告管理
@@ -338,7 +369,8 @@ const adminRoutes = [
     meta: {
       title: "公告管理",
       requiresAuth: true,
-      role: "admin"
+      role: "admin",
+      level: 2
     }
   },
   {
@@ -348,7 +380,8 @@ const adminRoutes = [
     meta: {
       title: "发布公告",
       requiresAuth: true,
-      role: "admin"
+      role: "admin",
+      level: 2
     }
   }
 ];
