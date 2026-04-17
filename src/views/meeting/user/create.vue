@@ -76,7 +76,7 @@
 
 <script setup>
 import { CalendarIcon, ChevronRightIcon } from "tdesign-icons-vue-next"
-import { reservationRepo, userPreferenceRepo, todoRepo } from "@/db/repositories"
+import { createReservation, checkReservationConflict, createTodo } from "@/api"
 import { useUserStore } from "@/store"
 import { showToast, showErrorDialog } from "@/utils/common/tools"
 import dayjs from "dayjs"
@@ -123,40 +123,28 @@ const handleSubmit = async () => {
   try {
     const start = `${formData.date} ${formData.startTime}`
     const end = `${formData.date} ${formData.endTime}`
-    const conflict = await reservationRepo.checkConflict(roomId, start, end)
-    if (conflict) {
+
+    // 检查冲突
+    const conflictRes = await checkReservationConflict({ roomId, start, end })
+    if (conflictRes.data?.hasConflict) {
+      const conflict = conflictRes.data.conflict
       showErrorDialog(`该时段已被预定：${conflict.subject}（${conflict.start.split(' ')[1]}-${conflict.end.split(' ')[1]}）`)
       return
     }
-    const reservationId = await reservationRepo.create({ roomId, userId: userStore.userId, subject: formData.subject, start, end, attendees: [], createdAt: new Date() })
 
-    // 记录用户偏好（智能推荐用）
-    const bookingDate = dayjs(formData.date)
-    await userPreferenceRepo.recordRoomUsage(userStore.userId, roomId)
-    await userPreferenceRepo.recordTimeUsage(userStore.userId, bookingDate.day(), formData.startTime)
-    await userPreferenceRepo.saveLastBookingInfo(userStore.userId, {
-      roomId,
-      roomName,
-      subject: formData.subject,
-      date: formData.date,
-      startTime: formData.startTime,
-      endTime: formData.endTime
-    })
+    // 创建预定
+    const res = await createReservation({ roomId, title: formData.subject, start, end })
+    const reservationId = res.data?.id
 
     // 如果选择加入待办
     if (formData.addToTodo) {
-      await todoRepo.create({
-        userId: userStore.userId,
+      await createTodo({
         title: `会议：${formData.subject}`,
-        taskDate: formData.date, // 任务日期为会议日期
-        dueDate: formData.date, // 截止日期也设为会议日期
-        priority: 2, // 中等优先级
-        smartPriority: 6,
+        taskDate: formData.date,
+        dueDate: formData.date,
+        priority: 2,
         relatedType: 'meeting',
-        relatedId: reservationId,
-        remark: `${roomName} ${formData.startTime}-${formData.endTime}`,
-        status: 'pending',
-        createdAt: new Date()
+        relatedId: reservationId
       })
     }
 

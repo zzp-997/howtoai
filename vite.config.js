@@ -117,14 +117,12 @@ export default ({ mode }) => {
       }),
     ],
     server: {
-      port: 3002,
+      port: 3003,
       host: "0.0.0.0",
       proxy: {
         [VITE_API_URL_PREFIX]: {
           target: VITE_API_URL,
           changeOrigin: true,
-          rewrite: (path) =>
-            path.replace(new RegExp(`^${VITE_API_URL_PREFIX}`), ""),
         },
       },
     },

@@ -81,7 +81,7 @@
 
 <script setup>
 import { ChevronRightIcon, ErrorCircleIcon } from "tdesign-icons-vue-next"
-import { leaveRepo } from "@/db/repositories"
+import { createLeave } from "@/api/leaves"
 import { useUserStore } from "@/store"
 import { showToast, showErrorDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
@@ -99,7 +99,12 @@ const loading = ref(false)
 const showStartPicker = ref(false)
 const showEndPicker = ref(false)
 
-const calculatedDays = computed(() => form.startDate && form.endDate ? leaveRepo.calculateDays(form.startDate, form.endDate) : 0)
+// 计算请假天数
+const calculatedDays = computed(() => {
+  if (!form.startDate || !form.endDate) return 0
+  return dayjs(form.endDate).diff(dayjs(form.startDate), 'day') + 1
+})
+
 const balanceWarning = computed(() => {
   if (form.leaveType === 'personal') return ''
   if (form.leaveType === 'annual' && calculatedDays.value > userStore.annualLeaveBalance) return `年假余额不足，当前余额 ${userStore.annualLeaveBalance} 天`
@@ -116,9 +121,11 @@ const handleSubmit = async () => {
 
   loading.value = true
   try {
-    await leaveRepo.create({
-      userId: userStore.userId, leaveType: form.leaveType, startDate: form.startDate, endDate: form.endDate,
-      days: calculatedDays.value, reason: form.reason.trim(), status: 'pending', createdAt: new Date()
+    await createLeave({
+      leaveType: form.leaveType,
+      startDate: form.startDate,
+      endDate: form.endDate,
+      reason: form.reason.trim()
     })
     showToast('提交成功')
     router.back()

@@ -212,7 +212,8 @@
 
 <script setup>
 import { ChevronRightIcon, LocationIcon, LightbulbIcon, DeleteIcon } from "tdesign-icons-vue-next"
-import { tripRepo, tripTemplateRepo, cityConfigRepo, DEFAULT_CITIES } from "@/db/repositories"
+import { getTrips, createTrip, updateTrip, getTrip } from "@/api/trips"
+import { getTripTemplates, createTripTemplate, deleteTripTemplate, getCityConfigs } from "@/api/configs"
 import { useUserStore } from "@/store"
 import { showToast, showErrorDialog } from "@/utils/common/tools"
 import { useRouter, useRoute } from "vue-router"
@@ -247,9 +248,10 @@ const templateName = ref('')
 const tripTemplates = ref([])
 const selectedCityInfo = ref(null)
 const costEstimate = ref(null)
+const cityConfigs = ref([])
 
-// 热门城市
-const popularCities = DEFAULT_CITIES.slice(0, 8)
+// 热门城市（从城市配置加载）
+const popularCities = computed(() => cityConfigs.value.slice(0, 8))
 
 // 费用总计
 const totalFee = computed(() => (Number(form.estTransportFee) || 0) + (Number(form.estAccomFee) || 0))
@@ -262,13 +264,21 @@ const tripDays = computed(() => {
 
 // 加载模板
 const loadTemplates = async () => {
-  tripTemplates.value = await tripTemplateRepo.getFrequentTemplates(userStore.userId, 5)
+  const res = await getTripTemplates()
+  tripTemplates.value = res.data || []
+}
+
+// 加载城市配置
+const loadCityConfigs = async () => {
+  const res = await getCityConfigs()
+  cityConfigs.value = res.data || []
 }
 
 // 加载编辑数据
 const loadEditData = async () => {
   if (!editId.value) return
-  const trip = await tripRepo.findById(editId.value)
+  const res = await getTrip(editId.value)
+  const trip = res.data
   if (trip) {
     form.reason = trip.reason || ''
     form.destination = trip.destination || ''
@@ -277,8 +287,6 @@ const loadEditData = async () => {
     form.estTransportFee = trip.estTransportFee || 0
     form.estAccomFee = trip.estAccomFee || 0
     form.attachments = trip.attachments || []
-    // 更新城市信息
-    onDestinationChange()
   }
 }
 
@@ -286,17 +294,24 @@ const loadEditData = async () => {
 const selectCity = async (city) => {
   form.destination = city.name
   selectedCityInfo.value = city
-  costEstimate.value = await cityConfigRepo.getCostEstimate(city.name)
+  // 简化实现：使用城市的基础费用作为估算
+  costEstimate.value = {
+    transportFee: { min: city.transportFeeBase * 0.8, max: city.transportFeeBase * 1.2 },
+    accommodationFee: { min: city.accomFeeBase * 0.8, max: city.accomFeeBase * 1.2 }
+  }
 }
 
 // 目的地变化时查询城市信息
 const onDestinationChange = async () => {
   if (form.destination) {
-    const estimate = await cityConfigRepo.getCostEstimate(form.destination)
-    costEstimate.value = estimate
-    // 尝试匹配城市
-    const city = await cityConfigRepo.findByName(form.destination)
+    const city = cityConfigs.value.find(c => c.name === form.destination)
     selectedCityInfo.value = city
+    if (city) {
+      costEstimate.value = {
+        transportFee: { min: city.transportFeeBase * 0.8, max: city.transportFeeBase * 1.2 },
+        accommodationFee: { min: city.accomFeeBase * 0.8, max: city.accomFeeBase * 1.2 }
+      }
+    }
   }
 }
 
@@ -310,14 +325,10 @@ const applyEstimate = () => {
 
 // 应用模板
 const applyTemplate = async (tpl) => {
-  const data = await tripTemplateRepo.applyTemplate(tpl.id)
-  form.reason = data.reason || form.reason
-  form.destination = data.destination || form.destination
-  form.estTransportFee = data.estTransportFee || form.estTransportFee
-  form.estAccomFee = data.estAccomFee || form.estAccomFee
-
-  // 更新使用次数
-  await tripTemplateRepo.incrementUseCount(tpl.id)
+  form.reason = tpl.reason || form.reason
+  form.destination = tpl.destination || form.destination
+  form.estTransportFee = tpl.estTransportFee || form.estTransportFee
+  form.estAccomFee = tpl.estAccomFee || form.estAccomFee
 
   // 更新城市信息
   onDestinationChange()
@@ -335,8 +346,7 @@ const saveAsTemplate = async () => {
     return
   }
 
-  await tripTemplateRepo.createTemplate({
-    userId: userStore.userId,
+  await createTripTemplate({
     name: templateName.value.trim(),
     destination: form.destination,
     reason: form.reason,
@@ -354,7 +364,7 @@ const saveAsTemplate = async () => {
 const deleteTemplate = async (id) => {
   try {
     await showConfirmDialog({ content: '确定删除该模板吗？' })
-    await tripTemplateRepo.delete(id)
+    await deleteTripTemplate(id)
     showToast('已删除')
     loadTemplates()
   } catch (e) {
@@ -371,41 +381,22 @@ const handleSubmit = async () => {
 
   loading.value = true
   try {
-    const attachments = await Promise.all(form.attachments.map(async (file) => {
-      if (file.raw) {
-        const blob = await file.raw.arrayBuffer()
-        return { name: file.name, blob: new Blob([blob], { type: file.raw.type }) }
-      }
-      return null
-    })).then(arr => arr.filter(Boolean))
+    const data = {
+      reason: form.reason,
+      destination: form.destination,
+      startDate: form.startDate,
+      endDate: form.endDate,
+      estTransportFee: Number(form.estTransportFee) || 0,
+      estAccomFee: Number(form.estAccomFee) || 0
+    }
 
     if (isEditMode.value) {
       // 编辑模式：更新数据
-      await tripRepo.update(editId.value, {
-        reason: form.reason,
-        destination: form.destination,
-        startDate: form.startDate,
-        endDate: form.endDate,
-        estTransportFee: Number(form.estTransportFee) || 0,
-        estAccomFee: Number(form.estAccomFee) || 0,
-        attachments,
-        updatedAt: new Date()
-      })
+      await updateTrip(editId.value, data)
       showToast('修改成功')
     } else {
       // 新建模式：创建数据
-      await tripRepo.create({
-        userId: userStore.userId,
-        reason: form.reason,
-        destination: form.destination,
-        startDate: form.startDate,
-        endDate: form.endDate,
-        estTransportFee: Number(form.estTransportFee) || 0,
-        estAccomFee: Number(form.estAccomFee) || 0,
-        attachments,
-        status: 'pending',
-        createdAt: new Date()
-      })
+      await createTrip(data)
       showToast('提交成功')
     }
     router.back()
@@ -417,6 +408,7 @@ const handleSubmit = async () => {
 }
 
 onMounted(async () => {
+  await loadCityConfigs()
   await loadTemplates()
   if (isEditMode.value) {
     await loadEditData()

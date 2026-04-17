@@ -87,7 +87,7 @@
 
 <script setup>
 import { AddIcon, LocationIcon, TimeIcon, MoneyIcon, CheckCircleIcon } from "tdesign-icons-vue-next"
-import { tripRepo, expenseClaimRepo } from "@/db/repositories"
+import { getTrips, deleteTrip, getExpenses } from "@/api"
 import { useUserStore } from "@/store"
 import { showToast, showConfirmDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
@@ -130,11 +130,16 @@ const getExpenseStatusLabel = (tripId) => {
 }
 
 const loadData = async () => {
-  trips.value = await tripRepo.findByUserIdOrdered(userStore.userId)
+  const res = await getTrips()
+  trips.value = res.data || []
+
   // 检查每个已批准差旅的报销状态
+  const expenseRes = await getExpenses()
+  const expenses = expenseRes.data || []
+
   for (const trip of trips.value) {
     if (trip.status === 'approved') {
-      const claim = await expenseClaimRepo.findByTripId(trip.id)
+      const claim = expenses.find(e => e.tripId === trip.id)
       if (claim) {
         expenseStatusMap.value[trip.id] = claim.status
       }
@@ -145,7 +150,7 @@ const loadData = async () => {
 const handleCancel = async (trip) => {
   try {
     await showConfirmDialog({ content: '确定撤销该申请吗？' })
-    await tripRepo.delete(trip.id)
+    await deleteTrip(trip.id)
     showToast('已撤销')
     loadData()
   } catch (e) {

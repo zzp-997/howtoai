@@ -318,6 +318,16 @@ onUnmounted(() => {
   100% { transform: rotate(360deg); }
 }
 
+/* 登录按钮样式 */
+.login-btn {
+  overflow: hidden !important;
+}
+
+.login-btn :deep(.t-button__content) {
+  overflow: hidden;
+  border-radius: 14px;
+}
+
 /* 登录按钮特效 */
 .login-btn::before {
   content: '';
@@ -328,11 +338,34 @@ onUnmounted(() => {
   height: 100%;
   background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 50%, transparent 100%);
   animation: btn-shine 3s ease-in-out infinite;
+  border-radius: 14px;
 }
 
 @keyframes btn-shine {
   0% { left: -100%; }
   50%, 100% { left: 100%; }
+}
+
+/* 登录按钮 loading 旋转图标完整显示 */
+.login-btn :deep(.t-button__loading) {
+  overflow: visible !important;
+}
+
+.login-btn :deep(.t-loading__spinner) {
+  width: 28px !important;
+  height: 28px !important;
+  overflow: visible !important;
+}
+
+.login-btn :deep(.t-loading__spinner svg) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.login-btn :deep(.t-loading) {
+  display: inline-flex !important;
+  align-items: center !important;
+  overflow: visible !important;
 }
 
 /* 输入框聚焦效果 */

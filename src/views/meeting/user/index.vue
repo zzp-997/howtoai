@@ -212,7 +212,7 @@
 
 <script setup>
 import { ChevronDownIcon, FolderIcon, UserIcon, ToolsIcon, CheckCircleIcon, CalendarIcon, LightbulbIcon } from "tdesign-icons-vue-next"
-import { meetingRoomRepo, reservationRepo, userPreferenceRepo } from "@/db/repositories"
+import { getMeetingRooms, getReservations, getUserPreference } from "@/api"
 import { useUserStore } from "@/store"
 import { useRouter } from "vue-router"
 import dayjs from "dayjs"
@@ -263,13 +263,24 @@ const handleCalendarConfirm = (value) => {
   showCalendarPopup.value = false
 }
 
-const loadRooms = async () => { rooms.value = await meetingRoomRepo.findAll() }
+const loadRooms = async () => {
+  const res = await getMeetingRooms()
+  rooms.value = res.data || []
+}
 
 const loadReservations = async () => {
   const result = {}
+  // 获取所有预定，然后按房间和日期筛选
+  const res = await getReservations()
+  const allReservations = res.data || []
+
   for (const room of rooms.value) {
-    const reservations = await reservationRepo.findByRoomAndDate(room.id, selectedDate.value)
-    result[room.id] = reservations.sort((a, b) => a.start.localeCompare(b.start))
+    const roomRes = allReservations.filter(r => {
+      // 比较日期部分
+      const resDate = r.start?.split(' ')[0]
+      return r.roomId === room.id && resDate === selectedDate.value
+    })
+    result[room.id] = roomRes.sort((a, b) => a.start.localeCompare(b.start))
   }
   roomReservations.value = result
 }
@@ -279,7 +290,8 @@ const calculateRecommendations = async () => {
   if (rooms.value.length === 0) return
 
   // 获取用户偏好
-  userPreference.value = await userPreferenceRepo.findByUserId(userStore.userId)
+  const prefRes = await getUserPreference()
+  userPreference.value = prefRes.data
 
   const recommendations = []
   const now = dayjs()

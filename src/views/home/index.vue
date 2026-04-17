@@ -494,7 +494,24 @@ import {
 } from "tdesign-icons-vue-next"
 import { useUserStore } from "@/store"
 import { showToast } from "@/utils/common/tools"
-import { todoRepo, announcementRepo, ANNOUNCEMENT_CATEGORIES, attendanceRepo, attendanceConfigRepo } from "@/db/repositories"
+import {
+  getTodos,
+  toggleTodo,
+  getAnnouncements,
+  getUnreadAnnouncementCount,
+  markAnnouncementRead,
+  getTodayAttendance,
+  checkIn,
+  checkOut,
+  getAttendanceConfigs
+} from "@/api"
+
+// 公告分类常量（从原 repository 复制）
+const ANNOUNCEMENT_CATEGORIES = {
+  policy: { label: '政策', color: '#0052D9' },
+  activity: { label: '活动', color: '#7B61FF' },
+  notice: { label: '通知', color: '#00A870' }
+}
 import { getMeetingRecommendations, refreshMeetingCache, getTripReminders, getExpenseReminders } from "@/utils/smartRecommend"
 import { useRouter } from "vue-router"
 import dayjs from "dayjs"
@@ -613,24 +630,41 @@ const isToday = (dueDate) => {
 
 const loadTodos = async () => {
   if (!userStore.isAdmin) {
-    todos.value = await todoRepo.findByUserId(userStore.userId)
+    try {
+      const res = await getTodos()
+      todos.value = res.data || []
+    } catch (error) {
+      console.error('加载待办失败:', error)
+      todos.value = []
+    }
   }
 }
 
 const loadAnnouncements = async () => {
   if (!userStore.isAdmin) {
-    const all = await announcementRepo.findAllOrdered()
-    // 只取前5条用于滚动
-    announcements.value = all.slice(0, 5)
-    // 启动自动轮播
-    startAnnouncementAutoPlay()
-    // 获取未读数量
-    unreadAnnouncementCount.value = await announcementRepo.getUnreadCount(userStore.userId)
-    // 获取需要弹窗的重要公告
-    const important = await announcementRepo.findImportantUnread(userStore.userId)
-    if (important.length > 0) {
-      popupAnnouncements.value = important
-      showAnnouncementPopup.value = true
+    try {
+      const res = await getAnnouncements()
+      const all = res.data || []
+      // 只取前5条用于滚动
+      announcements.value = all.slice(0, 5)
+      // 启动自动轮播
+      startAnnouncementAutoPlay()
+      // 获取未读数量
+      try {
+        const countRes = await getUnreadAnnouncementCount()
+        unreadAnnouncementCount.value = countRes.data?.count || 0
+      } catch (e) {
+        console.error('获取未读公告数量失败:', e)
+      }
+      // 获取需要弹窗的重要公告（置顶公告）
+      const important = all.filter(a => a.isTop)
+      if (important.length > 0) {
+        popupAnnouncements.value = important
+        showAnnouncementPopup.value = true
+      }
+    } catch (error) {
+      console.error('加载公告失败:', error)
+      announcements.value = []
     }
   }
 }
@@ -638,20 +672,39 @@ const loadAnnouncements = async () => {
 // 加载今日考勤记录
 const loadTodayRecord = async () => {
   if (!userStore.isAdmin) {
-    const today = dayjs().format('YYYY-MM-DD')
-    todayRecord.value = await attendanceRepo.findByUserAndDate(userStore.userId, today)
-    workStartTime.value = await attendanceConfigRepo.getWorkStartTime()
-    workEndTime.value = await attendanceConfigRepo.getWorkEndTime()
+    try {
+      const res = await getTodayAttendance()
+      todayRecord.value = res.data
+    } catch (error) {
+      console.error('加载考勤记录失败:', error)
+      todayRecord.value = null
+    }
+    // 获取考勤配置
+    try {
+      const configRes = await getAttendanceConfigs()
+      const configs = configRes.data || []
+      const startTimeConfig = configs.find(c => c.key === 'workStartTime')
+      const endTimeConfig = configs.find(c => c.key === 'workEndTime')
+      workStartTime.value = startTimeConfig?.value || '09:00'
+      workEndTime.value = endTimeConfig?.value || '18:00'
+    } catch (error) {
+      console.error('加载考勤配置失败:', error)
+    }
   }
 }
 
 // 加载会议推荐
 const loadMeetingRecommendations = async () => {
   if (!userStore.isAdmin) {
-    meetingRecommendations.value = await getMeetingRecommendations(userStore.userId, { useCache: true })
-    // 启动轮播
-    if (meetingRecommendations.value.length > 1) {
-      startRecommendAutoPlay()
+    try {
+      meetingRecommendations.value = await getMeetingRecommendations(userStore.userId, { useCache: true })
+      // 启动轮播
+      if (meetingRecommendations.value.length > 1) {
+        startRecommendAutoPlay()
+      }
+    } catch (error) {
+      console.error('加载会议推荐失败:', error)
+      meetingRecommendations.value = []
     }
   }
 }
@@ -659,11 +712,16 @@ const loadMeetingRecommendations = async () => {
 // 加载行程提醒
 const loadTripReminders = async () => {
   if (!userStore.isAdmin) {
-    tripReminders.value = await getTripReminders(userStore.userId)
-    // 从本地存储加载已关闭的提醒
-    const dismissed = localStorage.getItem('dismissedReminders')
-    if (dismissed) {
-      dismissedReminders.value = new Set(JSON.parse(dismissed))
+    try {
+      tripReminders.value = await getTripReminders(userStore.userId)
+      // 从本地存储加载已关闭的提醒
+      const dismissed = localStorage.getItem('dismissedReminders')
+      if (dismissed) {
+        dismissedReminders.value = new Set(JSON.parse(dismissed))
+      }
+    } catch (error) {
+      console.error('加载行程提醒失败:', error)
+      tripReminders.value = []
     }
   }
 }
@@ -677,11 +735,16 @@ const handleDismissReminder = (reminderId) => {
 // 加载报销提醒
 const loadExpenseReminders = async () => {
   if (!userStore.isAdmin) {
-    expenseReminders.value = await getExpenseReminders(userStore.userId)
-    // 从本地存储加载已关闭的提醒
-    const dismissed = localStorage.getItem('dismissedExpenseReminders')
-    if (dismissed) {
-      dismissedExpenseReminders.value = new Set(JSON.parse(dismissed))
+    try {
+      expenseReminders.value = await getExpenseReminders(userStore.userId)
+      // 从本地存储加载已关闭的提醒
+      const dismissed = localStorage.getItem('dismissedExpenseReminders')
+      if (dismissed) {
+        dismissedExpenseReminders.value = new Set(JSON.parse(dismissed))
+      }
+    } catch (error) {
+      console.error('加载报销提醒失败:', error)
+      expenseReminders.value = []
     }
   }
 }
@@ -748,7 +811,7 @@ const handleCheckIn = async () => {
     return
   }
   try {
-    await attendanceRepo.checkIn(userStore.userId, workStartTime.value)
+    await checkIn()
     showToast('上班打卡成功')
     await loadTodayRecord()
   } catch (error) {
@@ -767,7 +830,7 @@ const handleCheckOut = async () => {
     return
   }
   try {
-    await attendanceRepo.checkOut(userStore.userId, workEndTime.value)
+    await checkOut()
     showToast('下班打卡成功')
     await loadTodayRecord()
   } catch (error) {
@@ -796,16 +859,26 @@ const getCategoryColor = (category) => ANNOUNCEMENT_CATEGORIES[category]?.color 
 
 // 关闭弹窗
 const closeAnnouncementPopup = async () => {
-  if (popupAnnouncements.value.length > 0) {
-    // 标记当前公告已弹窗展示
-    await announcementRepo.markPopupShown(popupAnnouncements.value[currentPopupIndex.value].id, userStore.userId)
+  if (popupAnnouncements.value.length > 0 && popupAnnouncements.value[currentPopupIndex.value]) {
+    // 标记当前公告已读
+    try {
+      await markAnnouncementRead(popupAnnouncements.value[currentPopupIndex.value].id)
+    } catch (e) {
+      // 忽略错误
+    }
   }
   showAnnouncementPopup.value = false
 }
 
 // 查看弹窗公告详情
 const viewPopupAnnouncement = async (item) => {
-  await announcementRepo.markPopupShown(item.id, userStore.userId)
+  if (item) {
+    try {
+      await markAnnouncementRead(item.id)
+    } catch (e) {
+      // 忽略错误
+    }
+  }
   showAnnouncementPopup.value = false
   router.push(`/user/announcement/${item.id}`)
 }
@@ -844,7 +917,15 @@ const formatDueDate = (date) => {
 }
 
 const handleToggleTodo = async (todo) => {
-  await todoRepo.toggleComplete(todo.id)
+  // 使用 toggleTodo API
+  const res = await toggleTodo(todo.id)
+  if (res.data) {
+    // 更新本地数据
+    const index = todos.value.findIndex(t => t.id === todo.id)
+    if (index !== -1) {
+      todos.value[index] = res.data
+    }
+  }
   loadTodos()
 }
 

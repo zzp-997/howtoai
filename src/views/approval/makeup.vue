@@ -64,7 +64,8 @@
 </template>
 
 <script setup>
-import { makeUpRequestRepo, userRepo, attendanceRepo } from "@/db/repositories"
+import { getMakeUpRequests, approveMakeUpRequest, getAttendances } from "@/api/attendance"
+import { getUsers } from "@/api/users"
 import { useUserStore } from "@/store"
 import { showToast, vibrateWithSettings, VIBRATE_PATTERNS } from "@/utils/common/tools"
 
@@ -103,19 +104,7 @@ const getStatusTheme = (status) => {
 
 // 审批
 const handleApprove = async (makeup, approved) => {
-  await makeUpRequestRepo.approve(makeup.id, approved, makeup._comment || '', userStore.userId)
-
-  // 如果通过，更新考勤记录
-  if (approved) {
-    const record = await attendanceRepo.findByUserAndDate(makeup.userId, makeup.date)
-    if (record) {
-      if (makeup.type === 'checkIn') {
-        await attendanceRepo.update(record.id, { checkInTime: '09:00', isLate: false })
-      } else {
-        await attendanceRepo.update(record.id, { checkOutTime: '18:00' })
-      }
-    }
-  }
+  await approveMakeUpRequest(makeup.id, approved)
 
   // 震动反馈
   vibrateWithSettings(approved ? VIBRATE_PATTERNS.success : VIBRATE_PATTERNS.normal)
@@ -124,8 +113,11 @@ const handleApprove = async (makeup, approved) => {
 }
 
 const loadData = async () => {
-  users.value = await userRepo.findAll()
-  makeUps.value = await makeUpRequestRepo.findAll()
+  const usersRes = await getUsers()
+  users.value = usersRes.data || []
+
+  const makeUpsRes = await getMakeUpRequests()
+  makeUps.value = makeUpsRes.data || []
 }
 
 watch(activeStatus, () => loadData())

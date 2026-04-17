@@ -42,7 +42,7 @@
 
 <script setup>
 import { AddIcon, FolderIcon } from "tdesign-icons-vue-next"
-import { documentCategoryRepo } from "@/db/repositories"
+import { getDocumentCategories, createDocumentCategory, updateDocumentCategory, deleteDocumentCategory } from "@/api/documents"
 import { showToast, showConfirmDialog } from "@/utils/common/tools"
 
 const categories = ref([])
@@ -50,7 +50,10 @@ const showDialog = ref(false)
 const editCategory = ref(null)
 const form = reactive({ name: "" })
 
-const loadCategories = async () => { categories.value = await documentCategoryRepo.findAllOrdered() }
+const loadCategories = async () => {
+  const res = await getDocumentCategories()
+  categories.value = res.data || []
+}
 
 const handleAdd = () => {
   editCategory.value = null
@@ -67,10 +70,10 @@ const handleEdit = (cat) => {
 const handleSave = async () => {
   if (!form.name.trim()) { showToast("请输入分类名称"); return }
   if (editCategory.value) {
-    await documentCategoryRepo.update(editCategory.value.id, { name: form.name.trim() })
+    await updateDocumentCategory(editCategory.value.id, { name: form.name.trim() })
     showToast("修改成功")
   } else {
-    await documentCategoryRepo.create({ name: form.name.trim(), createdAt: new Date() })
+    await createDocumentCategory({ name: form.name.trim() })
     showToast("添加成功")
   }
   showDialog.value = false
@@ -80,7 +83,7 @@ const handleSave = async () => {
 const handleDelete = async (cat) => {
   try {
     await showConfirmDialog({ content: `确定删除分类「${cat.name}」吗？` })
-    await documentCategoryRepo.delete(cat.id)
+    await deleteDocumentCategory(cat.id)
     showToast("已删除")
     loadCategories()
   } catch (e) {

@@ -100,7 +100,10 @@
 
 <script setup>
 import { LocationIcon, CalendarIcon, TimeIcon, CheckCircleIcon, ChevronRightIcon } from "tdesign-icons-vue-next"
-import { tripRepo, leaveRepo, makeUpRequestRepo, userRepo } from "@/db/repositories"
+import { getTrips } from "@/api/trips"
+import { getLeaves } from "@/api/leaves"
+import { getMakeUpRequests } from "@/api/attendance"
+import { getUsers } from "@/api/users"
 import { useRouter } from "vue-router"
 
 const router = useRouter()
@@ -124,10 +127,17 @@ const getUserName = (userId) => users.value.find(u => u.id === userId)?.name || 
 const getLeaveTypeName = (type) => ({ annual: '年假', sick: '病假', personal: '事假' }[type] || type)
 
 const loadData = async () => {
-  users.value = await userRepo.findAll()
-  trips.value = await tripRepo.findAll()
-  leaves.value = await leaveRepo.findAll()
-  makeUps.value = await makeUpRequestRepo.findAll()
+  const usersRes = await getUsers()
+  users.value = usersRes.data || []
+
+  const tripsRes = await getTrips()
+  trips.value = tripsRes.data || []
+
+  const leavesRes = await getLeaves()
+  leaves.value = leavesRes.data || []
+
+  const makeUpsRes = await getMakeUpRequests()
+  makeUps.value = makeUpsRes.data || []
 }
 
 onMounted(() => loadData())

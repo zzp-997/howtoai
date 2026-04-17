@@ -85,7 +85,7 @@
 
 <script setup>
 import { AddIcon, FolderIcon, HomeIcon, UserIcon, CloseIcon } from "tdesign-icons-vue-next"
-import { meetingRoomRepo } from "@/db/repositories"
+import { getMeetingRooms, createMeetingRoom, updateMeetingRoom, deleteMeetingRoom } from "@/api/meeting-rooms"
 import { showToast, showConfirmDialog } from "@/utils/common/tools"
 
 const rooms = ref([])
@@ -93,7 +93,10 @@ const showDialog = ref(false)
 const editRoom = ref(null)
 const form = reactive({ name: '', capacity: 10, equipmentStr: '' })
 
-const loadRooms = async () => { rooms.value = await meetingRoomRepo.findAll() }
+const loadRooms = async () => {
+  const res = await getMeetingRooms()
+  rooms.value = res.data || []
+}
 
 const handleAdd = () => {
   editRoom.value = null
@@ -109,12 +112,16 @@ const handleEdit = (room) => {
 
 const handleSave = async () => {
   if (!form.name.trim()) { showToast('请输入会议室名称'); return }
-  const data = { name: form.name.trim(), capacity: form.capacity, equipment: form.equipmentStr.split(',').map(s => s.trim()).filter(Boolean), createdAt: new Date() }
+  const data = {
+    name: form.name.trim(),
+    capacity: form.capacity,
+    equipment: form.equipmentStr.split(',').map(s => s.trim()).filter(Boolean)
+  }
   if (editRoom.value) {
-    await meetingRoomRepo.update(editRoom.value.id, data)
+    await updateMeetingRoom(editRoom.value.id, data)
     showToast('修改成功')
   } else {
-    await meetingRoomRepo.create(data)
+    await createMeetingRoom(data)
     showToast('添加成功')
   }
   showDialog.value = false
@@ -124,7 +131,7 @@ const handleSave = async () => {
 const handleDelete = async (room) => {
   try {
     await showConfirmDialog({ content: `确定删除「${room.name}」吗？` })
-    await meetingRoomRepo.delete(room.id)
+    await deleteMeetingRoom(room.id)
     showToast('已删除')
     loadRooms()
   } catch (e) {

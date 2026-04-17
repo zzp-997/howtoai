@@ -110,7 +110,9 @@
 
 <script setup>
 import { ChevronDownIcon, SettingIcon, CheckCircleIcon, CalendarIcon, LocationIcon, UserIcon, TimeIcon } from "tdesign-icons-vue-next"
-import { reservationRepo, meetingRoomRepo, userRepo } from "@/db/repositories"
+import { getReservations, cancelReservation } from "@/api/reservations"
+import { getMeetingRooms } from "@/api/meeting-rooms"
+import { getUsers } from "@/api/users"
 import { showToast, showConfirmDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
 import dayjs from "dayjs"
@@ -167,8 +169,8 @@ const handleDateConfirm = (value) => {
 
 const handleDelete = async (r) => {
   try {
-    await showConfirmDialog({ content: `确定删除预定「${r.subject}」吗？` })
-    await reservationRepo.delete(r.id)
+    await showConfirmDialog({ content: `确定删除预定「${r.title}」吗？` })
+    await cancelReservation(r.id)
     showToast('已删除')
     loadAllReservations()
   } catch (e) {
@@ -177,13 +179,18 @@ const handleDelete = async (r) => {
 }
 
 const loadAllReservations = async () => {
-  allReservations.value = await reservationRepo.findAll()
+  const res = await getReservations()
+  allReservations.value = res.data || []
   loadReservations()
 }
 
 onMounted(async () => {
-  rooms.value = await meetingRoomRepo.findAll()
-  users.value = await userRepo.findAll()
+  const roomsRes = await getMeetingRooms()
+  rooms.value = roomsRes.data || []
+
+  const usersRes = await getUsers()
+  users.value = usersRes.data || []
+
   await loadAllReservations()
 })
 </script>

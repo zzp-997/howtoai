@@ -104,7 +104,7 @@
 
 <script setup>
 import { ChevronRightIcon, LightbulbIcon } from "tdesign-icons-vue-next"
-import { todoRepo } from "@/db/repositories"
+import { createTodo } from "@/api"
 import { useUserStore } from "@/store"
 import { showToast, showErrorDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
@@ -227,19 +227,12 @@ const handleSubmit = async () => {
 
   loading.value = true
   try {
-    // 计算智能优先级分数
-    const smartPriority = calculateSmartPriority(form.priority, form.dueDate)
-
-    await todoRepo.create({
-      userId: userStore.userId,
+    await createTodo({
       title: form.title.trim(),
-      taskDate: form.taskDate, // 任务日期
+      taskDate: form.taskDate,
       dueDate: form.dueDate || null,
       priority: form.priority,
-      smartPriority,
-      remark: form.remark.trim() || null,
-      status: 'pending',
-      createdAt: new Date()
+      description: form.remark.trim() || null
     })
     showToast('创建成功')
     router.back()

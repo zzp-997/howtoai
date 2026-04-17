@@ -44,7 +44,9 @@
 
 <script setup>
 import { ChevronLeftIcon, ChevronRightIcon } from "tdesign-icons-vue-next"
-import { attendanceRepo, userRepo, leaveRepo } from "@/db/repositories"
+import { getAttendances } from "@/api/attendance"
+import { getLeaves } from "@/api/leaves"
+import { getUsers } from "@/api/users"
 import { showToast } from "@/utils/common/tools"
 import dayjs from "dayjs"
 
@@ -66,9 +68,14 @@ const getUserStats = (userId) => {
 }
 
 const loadData = async () => {
-  users.value = await userRepo.findAll()
-  attendanceRecords.value = await attendanceRepo.getMonthlyReport(currentMonth.value)
-  leaveRecords.value = await leaveRepo.findAll()
+  const usersRes = await getUsers()
+  users.value = usersRes.data || []
+
+  const attRes = await getAttendances({ month: currentMonth.value })
+  attendanceRecords.value = attRes.data || []
+
+  const leaveRes = await getLeaves()
+  leaveRecords.value = leaveRes.data || []
 }
 
 const prevMonth = () => { currentMonth.value = dayjs(currentMonth.value).subtract(1, "month").format("YYYY-MM"); loadData() }

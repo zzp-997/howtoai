@@ -40,7 +40,7 @@
 
 <script setup>
 import { NotificationIcon, ChevronRightIcon, InfoCircleIcon } from "tdesign-icons-vue-next"
-import { announcementRepo } from "@/db/repositories"
+import { getAnnouncements, getUnreadAnnouncementCount } from "@/api"
 import { useUserStore } from "@/store"
 import { useRouter } from "vue-router"
 import dayjs from "dayjs"
@@ -56,8 +56,10 @@ const isRead = (item) => (item.readBy || []).includes(userStore.userId)
 const formatDate = (date) => dayjs(date).format('YYYY-MM-DD HH:mm')
 
 const loadAnnouncements = async () => {
-  announcements.value = await announcementRepo.findAllOrdered()
-  unreadCount.value = await announcementRepo.getUnreadCount(userStore.userId)
+  const res = await getAnnouncements()
+  announcements.value = res.data || []
+  const countRes = await getUnreadAnnouncementCount()
+  unreadCount.value = countRes.data?.count || 0
 }
 
 const handleView = (item) => {

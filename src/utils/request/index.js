@@ -57,7 +57,7 @@ const transform = {
       }
     }
 
-    throw new ValidationError(data.msg || `请求接口错误, 错误码: ${code}`, data.code || 500);
+    throw new ValidationError(data.message || `请求接口错误, 错误码: ${code}`, data.code || 500);
   },
 
   // 请求前处理配置
@@ -120,7 +120,7 @@ const transform = {
   // 请求拦截器处理
   requestInterceptors: (config, options) => {
     const userStore = useUserStore();
-    const { token } = userStore;
+    const token = userStore.token;
 
     if (token && config?.requestOptions?.withToken !== false) {
       config.headers.Authorization = options.authenticationScheme
@@ -136,18 +136,18 @@ const transform = {
     if (data.code === 401 && config.requestOptions?.withToken) {
       throw {
         code: 401,
-        message: data.msg,
+        message: data.message,
         config: config,
         response: res
       };
     }
     if (config.requestOptions.autoToast) {
       if (data.code === 200) {
-        showToast(config.requestOptions.successToastMsg || (data.msg || '操作成功'));
+        showToast(config.requestOptions.successToastMsg || (data.message || '操作成功'));
       } else {
         Dialog.confirm({
           title: '提示',
-          content: data.msg || (config.requestOptions.errorToastMsg || '操作失败'),
+          content: data.message || (config.requestOptions.errorToastMsg || '操作失败'),
           confirmBtn: '确认',
           zIndex: 90000,
           overlayProps: {
@@ -162,20 +162,34 @@ const transform = {
   // 响应错误处理
   responseInterceptorsCatch: (error, instance) => {
     const { config, response } = error;
-    if (error.code === 401 && config.requestOptions.withToken) {
+
+    // 处理 401 未授权
+    if (response?.status === 401 || error.code === 401) {
       Dialog.confirm({
         title: '提示',
-        content: '用户信息过期,请重新登录',
+        content: response?.data?.message || '用户信息过期,请重新登录',
         confirmBtn: '确认',
         zIndex: 90000,
         overlayProps: {
           zIndex: 89050,
         },
         onConfirm() {
+          const userStore = useUserStore();
+          userStore.logout();
           router.push('/login');
         },
       });
-      return Promise.reject();
+      return Promise.reject(error);
+    }
+
+    // 处理其他错误，提取后端返回的 message
+    if (response?.data?.message) {
+      error.message = response.data.message;
+    }
+
+    // 如果开启了自动提示，显示错误信息
+    if (config?.requestOptions?.autoToast) {
+      showToast(response?.data?.message || '操作失败,请重试');
     }
 
     if (!config || !config.requestOptions.retry) return Promise.reject(error);
@@ -183,9 +197,6 @@ const transform = {
     config.retryCount = config.retryCount || 0;
 
     if (config.retryCount >= config.requestOptions.retry.count) {
-      if (config.requestOptions.autoToast) {
-        showToast('操作失败,请重试');
-      }
       return Promise.reject(error);
     }
 

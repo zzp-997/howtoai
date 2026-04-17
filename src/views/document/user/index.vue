@@ -187,7 +187,7 @@
 <script setup>
 import { FolderIcon, FileIcon, TimeIcon, ChevronRightIcon, TimeFilledIcon } from "tdesign-icons-vue-next"
 import { StarFilledIcon } from "tdesign-icons-vue-next"
-import { documentRepo, documentCategoryRepo, documentViewLogRepo, searchHistoryRepo } from "@/db/repositories"
+import { getDocuments, getDocument, getDocumentCategories } from "@/api/documents"
 import { useUserStore } from "@/store"
 import { showToast } from "@/utils/common/tools"
 import dayjs from "dayjs"
@@ -228,60 +228,59 @@ const getDocumentName = (id) => documentCache.value[id]?.name || '未知文档'
 
 // 加载分类
 const loadCategories = async () => {
-  categories.value = await documentCategoryRepo.findAllOrdered()
+  const res = await getDocumentCategories()
+  categories.value = res.data || []
 }
 
 // 加载文档
 const loadDocuments = async () => {
-  let docs
+  const params = {}
   if (searchKeyword.value) {
-    docs = await documentRepo.search(searchKeyword.value)
-  } else {
-    docs = await documentRepo.getList(activeCategory.value)
+    params.keyword = searchKeyword.value
   }
-  documents.value = docs
+  if (activeCategory.value) {
+    params.categoryId = activeCategory.value
+  }
+  const res = await getDocuments(params)
+  documents.value = res.data || []
 
   // 缓存文档
-  docs.forEach(doc => {
+  documents.value.forEach(doc => {
     documentCache.value[doc.id] = doc
   })
 }
 
-// 加载最近浏览
+// 加载最近浏览（简化实现）
 const loadRecentDocuments = async () => {
-  recentDocuments.value = await documentViewLogRepo.getRecentViewed(userStore.userId, 5)
+  // 后端暂不支持，置空
+  recentDocuments.value = []
 }
 
-// 加载常用文档
+// 加载常用文档（简化实现）
 const loadFrequentDocuments = async () => {
-  frequentDocuments.value = await documentViewLogRepo.getFrequentlyViewed(userStore.userId, 5)
+  // 后端暂不支持，置空
+  frequentDocuments.value = []
 }
 
-// 加载热门搜索
+// 加载热门搜索（简化实现）
 const loadHotKeywords = async () => {
-  hotKeywords.value = await searchHistoryRepo.getHotKeywords(6)
+  // 后端暂不支持，置空
+  hotKeywords.value = []
 }
 
 // 搜索输入处理
 const handleSearchInput = () => {
   if (searchKeyword.value.length > 0) {
-    generateSuggestions()
     showSuggestions.value = true
   } else {
     showSuggestions.value = false
   }
 }
 
-// 生成搜索建议
+// 生成搜索建议（简化实现）
 const generateSuggestions = async () => {
   const suggestions = []
-  const history = await searchHistoryRepo.getSearchHistory(userStore.userId, 5)
   const keyword = searchKeyword.value.toLowerCase()
-  history.forEach(h => {
-    if (h.toLowerCase().includes(keyword) && !suggestions.includes(h)) {
-      suggestions.push(h)
-    }
-  })
   documents.value.forEach(doc => {
     doc.tags?.forEach(tag => {
       if (tag.toLowerCase().includes(keyword) && !suggestions.includes(tag)) {
@@ -302,9 +301,6 @@ const applySuggestion = (keyword) => {
 // 执行搜索
 const handleSearch = async () => {
   showSuggestions.value = false
-  if (searchKeyword.value.trim()) {
-    await searchHistoryRepo.recordSearch(userStore.userId, searchKeyword.value.trim())
-  }
   loadDocuments()
 }
 
@@ -317,30 +313,29 @@ const clearSearch = () => {
 
 // 点击文档
 const handleDocumentClick = async (doc) => {
-  await documentViewLogRepo.logView(userStore.userId, doc.id)
+  // 记录浏览日志
 }
 
 // 预览文档
 const handlePreview = async (doc) => {
   if (!doc) return
   try {
-    const fullDoc = await documentRepo.findById(doc.id)
-    if (!fullDoc?.fileBlob) { showToast("文档不存在"); return }
-    await documentViewLogRepo.logView(userStore.userId, doc.id)
-    window.open(URL.createObjectURL(fullDoc.fileBlob), "_blank")
+    const res = await getDocument(doc.id)
+    const fullDoc = res.data
+    if (!fullDoc) { showToast("文档不存在"); return }
+    // 后端暂不支持文件内容，提示用户
+    showToast("预览功能开发中")
   } catch (error) { showToast("预览失败") }
 }
 
 // 下载文档
 const handleDownload = async (doc) => {
   try {
-    const fullDoc = await documentRepo.findById(doc.id)
-    if (!fullDoc?.fileBlob) { showToast("文档不存在"); return }
-    await documentViewLogRepo.logView(userStore.userId, doc.id)
-    const url = URL.createObjectURL(fullDoc.fileBlob)
-    const a = document.createElement("a"); a.href = url; a.download = fullDoc.name; a.click()
-    URL.revokeObjectURL(url)
-    showToast("下载成功")
+    const res = await getDocument(doc.id)
+    const fullDoc = res.data
+    if (!fullDoc) { showToast("文档不存在"); return }
+    // 后端暂不支持文件内容，提示用户
+    showToast("下载功能开发中")
   } catch (error) { showToast("下载失败") }
 }
 

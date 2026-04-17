@@ -67,7 +67,9 @@
 </template>
 
 <script setup>
-import { leaveRepo, userRepo, todoRepo } from "@/db/repositories"
+import { getLeaves, approveLeave } from "@/api/leaves"
+import { getUsers, updateUser } from "@/api/users"
+import { createTodo } from "@/api/todos"
 import { useUserStore } from "@/store"
 import { showToast, vibrateWithSettings, VIBRATE_PATTERNS } from "@/utils/common/tools"
 
@@ -111,18 +113,23 @@ const getStatusTheme = (status) => {
 
 // 审批
 const handleApprove = async (leave, approved) => {
-  await leaveRepo.approve(leave.id, approved, leave._comment || '', userStore.userId)
+  await approveLeave(leave.id, { approved, comment: leave._comment || '' })
 
   // 如果通过，扣减假期余额
   if (approved && leave.leaveType !== 'personal') {
-    const balanceField = leave.leaveType === 'annual' ? 'annualLeaveBalance' : 'sickLeaveBalance'
     const user = users.value.find(u => u.id === leave.userId)
-    if (user && user[balanceField] >= (leave.days || 1)) {
-      await userRepo.updateLeaveBalance(leave.userId, leave.leaveType, -(leave.days || 1))
+    if (user) {
+      const balanceField = leave.leaveType === 'annual' ? 'annualLeaveBalance' : 'sickLeaveBalance'
+      const newBalance = Math.max(0, (user[balanceField] || 0) - (leave.days || 1))
+      await updateUser(leave.userId, { [balanceField]: newBalance })
     }
     // 创建待办任务
     const leaveTypeName = leave.leaveType === 'annual' ? '年假' : (leave.leaveType === 'sick' ? '病假' : '事假')
-    await todoRepo.createFromApproval(leave.userId, 'leave', `${leaveTypeName}归来，请提交工作总结`, leave.id)
+    await createTodo({
+      title: `${leaveTypeName}归来，请提交工作总结`,
+      relatedType: 'leave',
+      relatedId: leave.id
+    })
   }
 
   // 震动反馈
@@ -132,8 +139,11 @@ const handleApprove = async (leave, approved) => {
 }
 
 const loadData = async () => {
-  users.value = await userRepo.findAll()
-  leaves.value = await leaveRepo.findAll()
+  const usersRes = await getUsers()
+  users.value = usersRes.data || []
+
+  const leavesRes = await getLeaves()
+  leaves.value = leavesRes.data || []
 }
 
 watch(activeStatus, () => loadData())

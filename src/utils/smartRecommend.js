@@ -3,7 +3,12 @@
  * 提供会议室推荐、差旅行程提醒等功能
  */
 import dayjs from 'dayjs'
-import { meetingRoomRepo, reservationRepo, userPreferenceRepo, tripRepo, cityConfigRepo } from '@/db/repositories'
+import { getMeetingRooms } from '@/api/meeting-rooms'
+import { getReservations } from '@/api/reservations'
+import { getUserPreference } from '@/api/configs'
+import { getTrips } from '@/api/trips'
+import { getCityConfigs } from '@/api/configs'
+import { getExpenses } from '@/api/expenses'
 
 // 推荐缓存
 const recommendCache = {
@@ -34,69 +39,89 @@ export async function getMeetingRecommendations(userId, options = {}) {
     }
   }
 
-  // 获取用户偏好
-  const preference = await userPreferenceRepo.findByUserId(userId)
-
-  // 获取所有会议室
-  const rooms = await meetingRoomRepo.findAll()
-
-  // 获取今日预定情况
-  const today = dayjs().format('YYYY-MM-DD')
-  const recommendations = []
-  const now = dayjs()
-  const currentHour = now.hour()
-
-  for (const room of rooms) {
-    // 容量筛选
-    if (capacity && room.capacity < capacity) continue
-
-    // 设备筛选
-    if (equipment && equipment.length > 0) {
-      const hasEquipment = equipment.every(e => room.equipment?.includes(e))
-      if (!hasEquipment) continue
+  try {
+    // 获取用户偏好
+    let preference = {}
+    try {
+      const prefRes = await getUserPreference()
+      preference = prefRes.data || {}
+    } catch (e) {
+      // 忽略用户偏好获取失败
     }
 
-    // 获取该会议室今日预定
-    const reservations = await reservationRepo.findByRoomAndDate(room.id, today)
+    // 获取所有会议室
+    const roomsRes = await getMeetingRooms()
+    const rooms = roomsRes.data || []
 
-    // 计算空闲时段
-    const { availHours, availSlots } = calculateAvailability(reservations, currentHour)
+    // 获取今日预定情况
+    const today = dayjs().format('YYYY-MM-DD')
+    const recommendations = []
+    const now = dayjs()
+    const currentHour = now.hour()
 
-    if (availHours > 0) {
-      // 计算匹配分数
-      const matchScore = calculateScore(room, preference, availHours, availSlots)
-
-      // 找最佳推荐时段
-      const bestSlot = findBestSlot(availSlots)
-
-      recommendations.push({
-        room,
-        availHours,
-        availText: bestSlot ? `${bestSlot.start}-${bestSlot.end} 空闲` : `${availHours}小时空闲`,
-        matchScore,
-        bestSlot,
-        reason: getRecommendReason(room, preference, availHours)
-      })
+    // 获取所有预定
+    let allReservations = []
+    try {
+      const resRes = await getReservations()
+      allReservations = resRes.data || []
+    } catch (e) {
+      // 忽略预定获取失败
     }
+
+    for (const room of rooms) {
+      // 容量筛选
+      if (capacity && room.capacity < capacity) continue
+
+      // 设备筛选
+      if (equipment && equipment.length > 0) {
+        const hasEquipment = equipment.every(e => room.equipment?.includes(e))
+        if (!hasEquipment) continue
+      }
+
+      // 获取该会议室今日预定
+      const reservations = allReservations.filter(r =>
+        r.roomId === room.id && r.start && r.start.startsWith(today)
+      )
+
+      // 计算空闲时段
+      const { availHours, availSlots } = calculateAvailability(reservations, currentHour)
+
+      if (availHours > 0) {
+        // 计算匹配分数
+        const matchScore = calculateScore(room, preference, availHours, availSlots)
+
+        // 找最佳推荐时段
+        const bestSlot = findBestSlot(availSlots)
+
+        recommendations.push({
+          room,
+          availHours,
+          availText: bestSlot ? `${bestSlot.start}-${bestSlot.end} 空闲` : `${availHours}小时空闲`,
+          matchScore,
+          bestSlot,
+          reason: getRecommendReason(room, preference, availHours)
+        })
+      }
+    }
+
+    // 按匹配度排序，取前3个
+    const result = recommendations
+      .sort((a, b) => b.matchScore - a.matchScore)
+      .slice(0, 3)
+
+    // 更新缓存
+    recommendCache.meeting.data = result
+    recommendCache.meeting.timestamp = Date.now()
+
+    return result
+  } catch (error) {
+    console.error('获取会议室推荐失败:', error)
+    return []
   }
-
-  // 按匹配度排序，取前3个
-  const result = recommendations
-    .sort((a, b) => b.matchScore - a.matchScore)
-    .slice(0, 3)
-
-  // 更新缓存
-  recommendCache.meeting.data = result
-  recommendCache.meeting.timestamp = Date.now()
-
-  return result
 }
 
 /**
  * 计算会议室空闲时段
- * @param {Array} reservations 预定记录
- * @param {number} currentHour 当前小时
- * @returns {Object} { availHours, availSlots }
  */
 function calculateAvailability(reservations, currentHour) {
   let availHours = 0
@@ -141,11 +166,6 @@ function calculateAvailability(reservations, currentHour) {
 
 /**
  * 计算推荐分数
- * @param {Object} room 会议室
- * @param {Object} preference 用户偏好
- * @param {number} availHours 空闲时长
- * @param {Array} availSlots 空闲时段
- * @returns {number} 分数 (0-5)
  */
 function calculateScore(room, preference, availHours, availSlots) {
   let score = 3 // 基础分
@@ -154,7 +174,7 @@ function calculateScore(room, preference, availHours, availSlots) {
   if (availHours >= 4) score += 0.5
   if (availHours >= 8) score += 0.5
 
-  // 常用会议室加分（权重最高）
+  // 常用会议室加分
   if (preference?.frequentRooms?.includes(room.id)) {
     score += 1
   }
@@ -174,11 +194,8 @@ function calculateScore(room, preference, availHours, availSlots) {
 
 /**
  * 找最佳推荐时段
- * @param {Array} availSlots 空闲时段
- * @returns {Object|null} 最佳时段
  */
 function findBestSlot(availSlots) {
-  // 优先推荐9点-14点开始的时段
   const preferred = availSlots.find(s => {
     const startHour = parseInt(s.start.split(':')[0])
     return startHour >= 9 && startHour <= 14
@@ -188,10 +205,6 @@ function findBestSlot(availSlots) {
 
 /**
  * 获取推荐理由
- * @param {Object} room 会议室
- * @param {Object} preference 用户偏好
- * @param {number} availHours 空闲时长
- * @returns {string} 推荐理由
  */
 function getRecommendReason(room, preference, availHours) {
   const reasons = []
@@ -223,181 +236,129 @@ export function refreshMeetingCache() {
 
 /**
  * 获取差旅行程提醒
- * @param {number} userId 用户ID
- * @returns {Promise<Array>} 提醒列表
  */
 export async function getTripReminders(userId) {
-  const today = dayjs()
-  const tomorrow = today.add(1, 'day').format('YYYY-MM-DD')
+  try {
+    const today = dayjs()
+    const tomorrow = today.add(1, 'day').format('YYYY-MM-DD')
 
-  // 查询明天出发的差旅
-  const trips = await tripRepo.findByUserId(userId)
-  const upcomingTrips = trips.filter(t => {
-    return t.startDate === tomorrow && t.status === 'approved'
-  })
+    // 查询差旅
+    let trips = []
+    try {
+      const tripsRes = await getTrips()
+      trips = tripsRes.data || []
+    } catch (e) {
+      console.error('获取差旅数据失败:', e)
+      return []
+    }
 
-  const reminders = []
-
-  for (const trip of upcomingTrips) {
-    // 获取城市信息
-    const cityInfo = await cityConfigRepo.findByName(trip.destination)
-
-    // 生成建议携带物品
-    const suggestions = generatePackingSuggestions(trip, cityInfo)
-
-    reminders.push({
-      trip,
-      cityInfo,
-      weatherTips: cityInfo?.weatherTips || '请提前查询当地天气',
-      suggestions,
-      reminderId: `trip-${trip.id}`
+    const upcomingTrips = trips.filter(t => {
+      return t.startDate === tomorrow && t.status === 'approved'
     })
-  }
 
-  return reminders
+    // 获取城市配置
+    let cityConfigs = []
+    try {
+      const cityRes = await getCityConfigs()
+      cityConfigs = cityRes.data || []
+    } catch (e) {
+      // 忽略城市配置获取失败
+    }
+
+    const reminders = []
+
+    for (const trip of upcomingTrips) {
+      const cityInfo = cityConfigs.find(c => c.name === trip.destination)
+      const suggestions = generatePackingSuggestions(trip, cityInfo)
+
+      reminders.push({
+        trip,
+        cityInfo,
+        weatherTips: cityInfo?.weatherTips || '请提前查询当地天气',
+        suggestions,
+        reminderId: `trip-${trip.id}`
+      })
+    }
+
+    return reminders
+  } catch (error) {
+    console.error('获取行程提醒失败:', error)
+    return []
+  }
 }
 
 /**
  * 生成建议携带物品
- * @param {Object} trip 差旅信息
- * @param {Object} cityInfo 城市信息
- * @returns {string[]} 建议物品列表
  */
 function generatePackingSuggestions(trip, cityInfo) {
   const suggestions = []
 
-  // 根据天气提示
-  if (cityInfo?.weatherTips?.includes('雨') || cityInfo?.weatherTips?.includes('梅雨')) {
-    suggestions.push('雨伞')
-  }
-  if (cityInfo?.weatherTips?.includes('冷') || cityInfo?.weatherTips?.includes('寒')) {
-    suggestions.push('保暖衣物')
-  }
-  if (cityInfo?.weatherTips?.includes('热') || cityInfo?.weatherTips?.includes('炎热')) {
-    suggestions.push('防晒用品')
-  }
-
-  // 根据出差天数
   const days = dayjs(trip.endDate).diff(dayjs(trip.startDate), 'day') + 1
   if (days >= 3) {
-    suggestions.push('充电器')
-    suggestions.push('洗漱用品')
+    suggestions.push('充电器', '洗漱用品')
   }
 
-  // 根据出差事由
   if (trip.reason?.includes('会议') || trip.reason?.includes('汇报')) {
-    suggestions.push('正装')
-    suggestions.push('名片')
+    suggestions.push('正装', '名片')
   }
 
-  // 默认建议
   if (suggestions.length === 0) {
-    suggestions.push('笔记本电脑')
-    suggestions.push('充电器')
+    suggestions.push('笔记本电脑', '充电器')
   }
 
   return [...new Set(suggestions)].slice(0, 5)
 }
 
 /**
- * 生成报销单预填数据
- * @param {Object} trip 差旅信息
- * @returns {Promise<Object>} 报销单数据
- */
-export async function generateExpenseFromTrip(trip) {
-  // 获取城市费用预估
-  let costEstimate = null
-  try {
-    costEstimate = await cityConfigRepo.getCostEstimate(trip?.destination)
-  } catch (e) {
-    console.warn('获取费用预估失败:', e)
-  }
-
-  // 使用默认值作为兜底
-  const fee = costEstimate || {
-    transportFee: { min: 500, max: 1500 },
-    accommodationFee: { min: 200, max: 500 }
-  }
-
-  // 计算天数
-  const days = dayjs(trip.endDate).diff(dayjs(trip.startDate), 'day') + 1
-
-  // 生成费用明细
-  const expenses = [
-    {
-      category: '交通费',
-      estimated: fee.transportFee.min,
-      estimatedMax: fee.transportFee.max,
-      actual: 0
-    },
-    {
-      category: '住宿费',
-      estimated: fee.accommodationFee.min * days,
-      estimatedMax: fee.accommodationFee.max * days,
-      actual: 0
-    },
-    {
-      category: '餐饮费',
-      estimated: 100 * days,
-      estimatedMax: 200 * days,
-      actual: 0
-    },
-    {
-      category: '其他费用',
-      estimated: 0,
-      estimatedMax: 0,
-      actual: 0
-    }
-  ]
-
-  return {
-    tripId: trip.id,
-    reason: trip.reason,
-    destination: trip.destination,
-    startDate: trip.startDate,
-    endDate: trip.endDate,
-    expenses,
-    totalEstimated: expenses.reduce((sum, e) => sum + e.estimated, 0),
-    totalEstimatedMax: expenses.reduce((sum, e) => sum + e.estimatedMax, 0),
-    totalActual: 0
-  }
-}
-
-/**
  * 获取需要报销提醒的差旅
- * @param {number} userId 用户ID
- * @returns {Promise<Array>} 需要提醒的差旅列表
  */
 export async function getExpenseReminders(userId) {
-  const today = dayjs().format('YYYY-MM-DD')
+  try {
+    const today = dayjs().format('YYYY-MM-DD')
 
-  // 查询所有差旅
-  const trips = await tripRepo.findByUserId(userId)
-
-  // 筛选已批准且已结束的差旅
-  const endedTrips = trips.filter(t => {
-    return t.status === 'approved' && t.endDate < today
-  })
-
-  const reminders = []
-
-  // 动态导入避免循环依赖
-  const { expenseClaimRepo } = await import('@/db/repositories')
-
-  for (const trip of endedTrips) {
-    // 检查是否已有报销单
-    const existingClaim = await expenseClaimRepo.findByTripId(trip.id)
-
-    if (!existingClaim || existingClaim.status === 'draft') {
-      reminders.push({
-        trip,
-        existingClaim,
-        reminderId: `expense-${trip.id}`,
-        daysSinceEnd: dayjs(today).diff(dayjs(trip.endDate), 'day')
-      })
+    // 查询所有差旅
+    let trips = []
+    try {
+      const tripsRes = await getTrips()
+      trips = tripsRes.data || []
+    } catch (e) {
+      console.error('获取差旅数据失败:', e)
+      return []
     }
-  }
 
-  // 按结束日期倒序排序（最近结束的优先）
-  return reminders.sort((a, b) => a.daysSinceEnd - b.daysSinceEnd)
+    // 筛选已批准且已结束的差旅
+    const endedTrips = trips.filter(t => {
+      return t.status === 'approved' && t.endDate < today
+    })
+
+    // 获取所有报销单
+    let expenses = []
+    try {
+      const expensesRes = await getExpenses()
+      expenses = expensesRes.data || []
+    } catch (e) {
+      // 忽略报销单获取失败
+    }
+
+    const reminders = []
+
+    for (const trip of endedTrips) {
+      // 检查是否已有报销单
+      const existingClaim = expenses.find(e => e.tripId === trip.id)
+
+      if (!existingClaim || existingClaim.status === 'draft') {
+        reminders.push({
+          trip,
+          existingClaim,
+          reminderId: `expense-${trip.id}`,
+          daysSinceEnd: dayjs(today).diff(dayjs(trip.endDate), 'day')
+        })
+      }
+    }
+
+    return reminders.sort((a, b) => a.daysSinceEnd - b.daysSinceEnd)
+  } catch (error) {
+    console.error('获取报销提醒失败:', error)
+    return []
+  }
 }

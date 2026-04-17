@@ -108,8 +108,8 @@
 
 <script setup>
 import { LocationIcon, MoneyIcon } from "tdesign-icons-vue-next"
-import { expenseClaimRepo } from "@/db/repositories"
-import { generateExpenseFromTrip } from "@/utils/smartRecommend"
+import { getExpenses, createExpense, updateExpense, getExpense } from "@/api/expenses"
+import { getTrip } from "@/api/trips"
 import { useUserStore } from "@/store"
 import { showToast, showErrorDialog } from "@/utils/common/tools"
 import { useRoute, useRouter } from "vue-router"
@@ -147,32 +147,30 @@ const totalActual = computed(() => {
 const loadData = async () => {
   if (isEditMode) {
     // 编辑模式：加载已有报销单
-    const claim = await expenseClaimRepo.findById(editingId)
-    if (claim) {
+    const res = await getExpense(editingId)
+    if (res.data) {
       expenseData.value = {
-        ...claim,
-        remark: claim.remark || ''
+        ...res.data,
+        remark: res.data.remark || ''
       }
     }
   } else if (tripId) {
     // 新建模式：从差旅生成预填数据
-    // 先检查是否已有报销单
-    const existing = await expenseClaimRepo.findByTripId(tripId)
-    if (existing) {
-      expenseData.value = {
-        ...existing,
-        remark: existing.remark || ''
-      }
-      return
-    }
-
-    // 获取差旅信息并生成预填数据
-    const { tripRepo } = await import('@/db/repositories')
-    const trip = await tripRepo.findById(tripId)
+    const tripRes = await getTrip(tripId)
+    const trip = tripRes.data
     if (trip) {
-      const generated = await generateExpenseFromTrip(trip)
       expenseData.value = {
-        ...generated,
+        tripId,
+        reason: trip.reason || '',
+        destination: trip.destination || '',
+        startDate: trip.startDate || '',
+        endDate: trip.endDate || '',
+        expenses: [
+          { type: '交通费', estimated: trip.estTransportFee || 0, actual: 0 },
+          { type: '住宿费', estimated: trip.estAccomFee || 0, actual: 0 }
+        ],
+        totalEstimated: (trip.estTransportFee || 0) + (trip.estAccomFee || 0),
+        totalActual: 0,
         remark: ''
       }
     }
@@ -185,23 +183,18 @@ const handleSaveDraft = async () => {
   try {
     const data = {
       tripId: expenseData.value.tripId,
-      userId: userStore.userId,
       reason: expenseData.value.reason,
       destination: expenseData.value.destination,
-      startDate: expenseData.value.startDate,
-      endDate: expenseData.value.endDate,
-      expenses: expenseData.value.expenses,
+      expenses: JSON.stringify(expenseData.value.expenses),
       totalEstimated: expenseData.value.totalEstimated,
-      totalEstimatedMax: expenseData.value.totalEstimatedMax,
       totalActual: totalActual.value,
-      remark: expenseData.value.remark,
       status: 'draft'
     }
 
     if (isEditMode) {
-      await expenseClaimRepo.updateClaim(editingId, data)
+      await updateExpense(editingId, data)
     } else {
-      await expenseClaimRepo.createClaim(data)
+      await createExpense(data)
     }
 
     showToast('已保存草稿')
@@ -224,30 +217,18 @@ const handleSubmit = async () => {
   try {
     const data = {
       tripId: expenseData.value.tripId,
-      userId: userStore.userId,
       reason: expenseData.value.reason,
       destination: expenseData.value.destination,
-      startDate: expenseData.value.startDate,
-      endDate: expenseData.value.endDate,
-      expenses: expenseData.value.expenses,
+      expenses: JSON.stringify(expenseData.value.expenses),
       totalEstimated: expenseData.value.totalEstimated,
-      totalEstimatedMax: expenseData.value.totalEstimatedMax,
       totalActual: totalActual.value,
-      remark: expenseData.value.remark,
-      status: 'submitted',
-      submittedAt: new Date()
+      status: 'submitted'
     }
 
     if (isEditMode) {
-      await expenseClaimRepo.updateClaim(editingId, data)
+      await updateExpense(editingId, data)
     } else {
-      // 检查是否已有草稿
-      const existing = await expenseClaimRepo.findByTripId(tripId)
-      if (existing) {
-        await expenseClaimRepo.updateClaim(existing.id, data)
-      } else {
-        await expenseClaimRepo.createClaim(data)
-      }
+      await createExpense(data)
     }
 
     showToast('报销单已提交')

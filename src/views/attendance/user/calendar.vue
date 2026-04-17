@@ -82,7 +82,8 @@
 
 <script setup>
 import { ChevronLeftIcon, ChevronRightIcon, CheckCircleIcon, CloseCircleIcon, TimeFilledIcon } from "tdesign-icons-vue-next"
-import { attendanceRepo, leaveRepo } from "@/db/repositories"
+import { getAttendances } from "@/api/attendance"
+import { getLeaves } from "@/api/leaves"
 import { useUserStore } from "@/store"
 import dayjs from "dayjs"
 
@@ -123,8 +124,10 @@ const generateCalendar = async () => {
 }
 
 const loadData = async () => {
-  attendanceRecords.value = await attendanceRepo.findByUserAndMonth(userStore.userId, currentMonth.value)
-  leaveRecords.value = await leaveRepo.findByUserId(userStore.userId)
+  const attRes = await getAttendances({ month: currentMonth.value })
+  attendanceRecords.value = attRes.data || []
+  const leaveRes = await getLeaves()
+  leaveRecords.value = leaveRes.data || []
   generateCalendar()
 }
 

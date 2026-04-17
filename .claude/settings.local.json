@@ -1,19 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cd:*)",
-      "Bash(npm run:*)",
-      "Bash(xxd)",
-      "Bash(where pandoc:*)",
-      "Bash(openspec list:*)",
-      "Bash(npm list:*)",
-      "Bash(grep -r export.*MoneyCircle node_modules/tdesign-icons-vue-next/esm/index.js)",
-      "Bash(grep -r export.*Money node_modules/tdesign-icons-vue-next/esm/index.js)",
-      "WebSearch",
-      "Bash(mkdir:*)",
-      "Bash(openspec propose:*)",
-      "Bash(openspec:*)",
-      "Bash(npm install:*)"
     ]
   }
 }

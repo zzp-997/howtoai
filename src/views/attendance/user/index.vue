@@ -149,7 +149,8 @@
 
 <script setup>
 import { TimeFilledIcon, TimeIcon, CheckCircleIcon, CalendarIcon, ViewListIcon, RefreshIcon, FileIcon, LightbulbIcon, ErrorCircleIcon, InfoCircleIcon, ChevronRightIcon } from "tdesign-icons-vue-next"
-import { attendanceRepo, attendanceConfigRepo, holidayConfigRepo, leaveRepo } from "@/db/repositories"
+import { getTodayAttendance, checkIn, checkOut, getAttendances } from "@/api/attendance"
+import { getAttendanceConfigs, checkWorkday, getHolidayConfigs } from "@/api/configs"
 import { useUserStore } from "@/store"
 import { showToast, showErrorDialog, vibrateWithSettings, VIBRATE_PATTERNS } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
@@ -171,21 +172,61 @@ const missedCheckIns = ref([])
 const leaveExpirationWarning = ref('')
 
 const loadTodayRecord = async () => {
-  todayRecord.value = await attendanceRepo.findByUserAndDate(userStore.userId, todayDate)
-  workStartTime.value = await attendanceConfigRepo.getWorkStartTime()
-  workEndTime.value = await attendanceConfigRepo.getWorkEndTime()
+  const res = await getTodayAttendance()
+  todayRecord.value = res.data
+
+  // 获取考勤配置
+  const configRes = await getAttendanceConfigs()
+  const configs = configRes.data || []
+  const workStartConfig = configs.find(c => c.key === 'workStartTime')
+  const workEndConfig = configs.find(c => c.key === 'workEndTime')
+  if (workStartConfig) workStartTime.value = workStartConfig.value
+  if (workEndConfig) workEndTime.value = workEndConfig.value
 }
 
 // 加载连休推荐
 const loadContinuousLeaveRecommendations = async () => {
   if (userStore.annualLeaveBalance > 0) {
-    continuousLeaveRecommendations.value = await holidayConfigRepo.getContinuousLeaveRecommendations(userStore.annualLeaveBalance)
+    // 获取节假日配置，计算连休推荐
+    const res = await getHolidayConfigs()
+    const holidays = res.data || []
+    // 简化的连休推荐逻辑：基于即将到来的节假日
+    const recommendations = []
+    const today = dayjs()
+
+    for (const holiday of holidays) {
+      if (holiday.type === 'holiday') {
+        const holidayDate = dayjs(holiday.date)
+        const daysUntilHoliday = holidayDate.diff(today, 'day')
+
+        // 只推荐未来30天内的节假日
+        if (daysUntilHoliday > 0 && daysUntilHoliday <= 30) {
+          // 计算可以连休的天数（假设请假1-2天）
+          const leaveDays = Math.min(userStore.annualLeaveBalance, 2)
+          const totalDays = leaveDays + 1 // 加上节假日当天
+
+          if (leaveDays > 0) {
+            recommendations.push({
+              reason: `${holiday.name}连休`,
+              suggestDate: holidayDate.subtract(leaveDays, 'day').format('YYYY-MM-DD'),
+              leaveDays,
+              totalDays
+            })
+          }
+        }
+      }
+
+      if (recommendations.length >= 3) break
+    }
+
+    continuousLeaveRecommendations.value = recommendations
   }
 }
 
 // 检查漏打卡
 const checkMissedCheckIns = async () => {
-  const records = await attendanceRepo.findByUserId(userStore.userId)
+  const res = await getAttendances()
+  const records = res.data || []
   const recordDates = new Set(records.map(r => r.date))
 
   const missed = []
@@ -199,8 +240,8 @@ const checkMissedCheckIns = async () => {
     if (day === 0 || day === 6) continue
 
     // 检查是否节假日
-    const isWorkday = await holidayConfigRepo.isWorkday(dateStr)
-    if (!isWorkday) continue
+    const workdayRes = await checkWorkday(dateStr)
+    if (!workdayRes.data?.isWorkday) continue
 
     // 检查是否已打卡
     if (!recordDates.has(dateStr)) {
@@ -255,7 +296,7 @@ const quickMakeUp = (missed) => {
 const handleCheckIn = async () => {
   if (todayRecord.value?.checkInTime) { showToast('今日已上班打卡'); return }
   try {
-    await attendanceRepo.checkIn(userStore.userId, workStartTime.value)
+    await checkIn()
     vibrateWithSettings(VIBRATE_PATTERNS.success)
     showToast('上班打卡成功')
     loadTodayRecord()
@@ -266,7 +307,7 @@ const handleCheckOut = async () => {
   if (!todayRecord.value?.checkInTime) { showToast('请先上班打卡'); return }
   if (todayRecord.value?.checkOutTime) { showToast('今日已下班打卡'); return }
   try {
-    await attendanceRepo.checkOut(userStore.userId, workEndTime.value)
+    await checkOut()
     vibrateWithSettings(VIBRATE_PATTERNS.success)
     showToast('下班打卡成功')
     loadTodayRecord()

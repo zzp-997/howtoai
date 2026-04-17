@@ -212,11 +212,14 @@ import {
   SettingIcon
 } from "tdesign-icons-vue-next"
 import { useSettingsStore } from "@/store/modules/settings"
-import { exportAllData, importAllData, clearAllData } from "@/db"
 import { showToast, showConfirmDialog } from "@/utils/common/tools"
 import { ref, computed } from "vue"
+import { useUserStore } from "@/store"
+import { useRouter } from "vue-router"
 
 const settingsStore = useSettingsStore()
+const userStore = useUserStore()
+const router = useRouter()
 const fileInput = ref(null)
 const showThemePicker = ref(false)
 const showPagePicker = ref(false)
@@ -286,63 +289,37 @@ const handlePageSelect = (page) => {
   showPagePicker.value = false
 }
 
-// 数据导出
+// 数据导出（已禁用，数据存储在服务器端）
 const handleExport = async () => {
-  try {
-    const jsonData = await exportAllData()
-    const blob = new Blob([jsonData], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `office_backup_${new Date().toISOString().slice(0, 10)}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-    showToast('备份成功')
-  } catch (error) {
-    showToast('备份失败：' + error.message)
-  }
+  showToast('数据备份功能暂不可用，数据已存储在服务器端')
 }
 
 // 触发文件选择
 const triggerImport = () => {
-  fileInput.value?.click()
+  showToast('数据恢复功能暂不可用，数据已存储在服务器端')
 }
 
-// 数据导入
+// 数据导入（已禁用）
 const handleImport = async (event) => {
-  const file = event.target.files?.[0]
-  if (!file) return
-
-  try {
-    const text = await file.text()
-    await importAllData(text)
-    showToast('恢复成功，请刷新页面')
-    // 刷新页面以加载新数据
-    setTimeout(() => window.location.reload(), 1500)
-  } catch (error) {
-    showToast('恢复失败：' + error.message)
-  }
-
-  // 清空 input 以便再次选择同一文件
-  event.target.value = ''
+  // 不再需要
 }
 
 // 清除数据
 const handleClearData = async () => {
   try {
     await showConfirmDialog({
-      title: '确认清除',
-      content: '此操作将清空所有本地数据，且不可恢复。确定要继续吗？',
-      confirmBtn: '确认清除',
+      title: '确认退出',
+      content: '此操作将退出登录并清除本地缓存。确定要继续吗？',
+      confirmBtn: '确认',
       cancelBtn: '取消'
     })
-    await clearAllData()
-    showToast('数据已清除，请重新登录')
-    // 清除用户状态并跳转登录
-    setTimeout(() => {
-      localStorage.clear()
-      window.location.href = '/login'
-    }, 1500)
+    // 清除用户状态
+    await userStore.logout()
+    // 清除本地存储
+    localStorage.clear()
+    showToast('已退出登录')
+    // 跳转登录页
+    router.push('/login')
   } catch {
     // 用户取消
   }

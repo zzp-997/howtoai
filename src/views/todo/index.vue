@@ -86,7 +86,7 @@
 
 <script setup>
 import { AddIcon, CheckIcon, CheckCircleIcon, TimeIcon, DeleteIcon, CalendarIcon } from "tdesign-icons-vue-next"
-import { todoRepo } from "@/db/repositories"
+import { getTodos, createTodo, toggleTodo, deleteTodo } from "@/api"
 import { useUserStore } from "@/store"
 import { showToast, showConfirmDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
@@ -146,18 +146,16 @@ const formatDueDate = (date) => {
 }
 
 const loadTodos = async () => {
-  todos.value = await todoRepo.findByUserId(userStore.userId)
+  const res = await getTodos()
+  todos.value = res.data || []
 }
 
 const handleQuickAdd = async () => {
   if (!quickAddTitle.value.trim()) return
-  await todoRepo.create({
-    userId: userStore.userId,
+  await createTodo({
     title: quickAddTitle.value.trim(),
     taskDate: dayjs().format('YYYY-MM-DD'), // 默认今天
-    status: 'pending',
-    priority: 2,
-    createdAt: new Date()
+    priority: 2
   })
   quickAddTitle.value = ''
   showToast('添加成功')
@@ -165,14 +163,14 @@ const handleQuickAdd = async () => {
 }
 
 const handleToggle = async (todo) => {
-  await todoRepo.toggleComplete(todo.id)
+  await toggleTodo(todo.id)
   loadTodos()
 }
 
 const handleDelete = async (todo) => {
   try {
     await showConfirmDialog({ content: `确定删除「${todo.title}」吗？` })
-    await todoRepo.delete(todo.id)
+    await deleteTodo(todo.id)
     showToast('已删除')
     loadTodos()
   } catch (e) {

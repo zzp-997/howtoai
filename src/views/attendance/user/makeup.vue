@@ -70,7 +70,7 @@
 
 <script setup>
 import { AddIcon, TimeIcon, ChevronRightIcon } from "tdesign-icons-vue-next"
-import { makeUpRequestRepo } from "@/db/repositories"
+import { getMakeUpRequests, createMakeUpRequest } from "@/api/attendance"
 import { useUserStore } from "@/store"
 import { showToast } from "@/utils/common/tools"
 import dayjs from "dayjs"
@@ -86,14 +86,21 @@ const getStatusLabel = (status) => ({ pending: '待审批', approved: '已通过
 const handleSubmit = async () => {
   if (!form.date) { showToast('请选择补卡日期'); return }
   if (!form.reason.trim()) { showToast('请输入补卡原因'); return }
-  await makeUpRequestRepo.create({ userId: userStore.userId, date: form.date, type: form.type, reason: form.reason.trim(), status: 'pending', createdAt: new Date() })
+  await createMakeUpRequest({
+    date: form.date,
+    type: form.type,
+    reason: form.reason.trim()
+  })
   showToast('提交成功')
   showDialog.value = false
   form.date = ''; form.reason = ''
   loadData()
 }
 
-const loadData = async () => { makeUps.value = await makeUpRequestRepo.findByUserIdOrdered(userStore.userId) }
+const loadData = async () => {
+  const res = await getMakeUpRequests()
+  makeUps.value = res.data || []
+}
 
 onMounted(() => loadData())
 </script>

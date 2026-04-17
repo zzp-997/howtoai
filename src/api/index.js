@@ -1,45 +1,35 @@
-import { request } from '@/utils/request';
+// ==================== 认证相关 ====================
+export * from './auth';
 
-/**
- * 登录
- * @param {Object} data - 登录参数
- * @param {string} data.username - 用户名
- * @param {string} data.password - 密码
- * @param {number} data.loginType - 登录类型
- * @returns {Promise}
- */
-export function login(data) {
-  return request.post({
-    url: '/login',
-    data,
-  }, {
-    isJoinPrefix: true,
-    isTransformResponse: false
-  });
-}
+// ==================== 用户管理 ====================
+export * from './users';
 
-/**
- * 登出
- * @returns {Promise}
- */
-export function logout() {
-  return request.post({
-    url: '/logout',
-  }, {
-    isJoinPrefix: true,
-    isTransformResponse: false
-  });
-}
+// ==================== 会议室相关 ====================
+export * from './meeting-rooms';
 
-/**
- * 获取用户信息
- * @returns {Promise}
- */
-export function getUserInfo() {
-  return request.get({
-    url: '/user/info',
-  }, {
-    isJoinPrefix: true,
-    isTransformResponse: false
-  });
-}
+// ==================== 预定相关 ====================
+export * from './reservations';
+
+// ==================== 差旅申请 ====================
+export * from './trips';
+
+// ==================== 请假申请 ====================
+export * from './leaves';
+
+// ==================== 考勤打卡 ====================
+export * from './attendance';
+
+// ==================== 待办事项 ====================
+export * from './todos';
+
+// ==================== 公告通知 ====================
+export * from './announcements';
+
+// ==================== 文档管理 ====================
+export * from './documents';
+
+// ==================== 报销单 ====================
+export * from './expenses';
+
+// ==================== 配置管理 ====================
+export * from './configs';

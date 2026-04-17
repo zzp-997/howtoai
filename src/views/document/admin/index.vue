@@ -69,7 +69,7 @@
 
 <script setup>
 import { AddIcon, FolderIcon, FileIcon, ChevronRightIcon } from "tdesign-icons-vue-next"
-import { documentRepo, documentCategoryRepo } from "@/db/repositories"
+import { getDocuments, createDocument, deleteDocument, getDocumentCategories } from "@/api/documents"
 import { useUserStore } from "@/store"
 import { showToast, showConfirmDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
@@ -99,8 +99,15 @@ const getSelectedCategoryName = () => uploadForm.categoryId ? getCategoryName(up
 
 const handleCategoryConfirm = (value) => { uploadForm.categoryId = value[0]; showCategoryPicker.value = false }
 
-const loadCategories = async () => { categories.value = await documentCategoryRepo.findAllOrdered() }
-const loadDocuments = async () => { documents.value = await documentRepo.getList(activeCategory.value) }
+const loadCategories = async () => {
+  const res = await getDocumentCategories()
+  categories.value = res.data || []
+}
+const loadDocuments = async () => {
+  const params = activeCategory.value ? { categoryId: activeCategory.value } : {}
+  const res = await getDocuments(params)
+  documents.value = res.data || []
+}
 
 watch(activeCategory, () => loadDocuments())
 
@@ -110,11 +117,13 @@ const handleUpload = async () => {
 
   const file = uploadFiles.value[0]
   if (file.raw) {
-    const blob = await file.raw.arrayBuffer()
-    await documentRepo.create({
-      name: file.name, categoryId: uploadForm.categoryId, tags: uploadForm.tags.split(",").map(s => s.trim()).filter(Boolean),
-      fileBlob: new Blob([blob], { type: file.raw.type }), fileType: file.raw.type, fileSize: file.raw.size,
-      uploadBy: userStore.userId, uploadAt: new Date()
+    // 简化实现：只保存文档元数据
+    await createDocument({
+      name: file.name,
+      categoryId: uploadForm.categoryId,
+      tags: uploadForm.tags.split(",").map(s => s.trim()).filter(Boolean),
+      fileType: file.raw.type,
+      fileSize: file.raw.size
     })
     showToast("上传成功")
     showUploadDialog.value = false
@@ -126,7 +135,7 @@ const handleUpload = async () => {
 const handleDelete = async (doc) => {
   try {
     await showConfirmDialog({ content: `确定删除「${doc.name}」吗？` })
-    await documentRepo.delete(doc.id)
+    await deleteDocument(doc.id)
     showToast("已删除")
     loadDocuments()
   } catch (e) {

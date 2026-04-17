@@ -53,7 +53,7 @@
 
 <script setup>
 import { CalendarIcon, LocationIcon, TimeIcon } from "tdesign-icons-vue-next"
-import { reservationRepo, meetingRoomRepo } from "@/db/repositories"
+import { getMyReservations, getMeetingRooms, cancelReservation } from "@/api"
 import { useUserStore } from "@/store"
 import { showToast, showConfirmDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
@@ -80,16 +80,25 @@ const formatRelativeTime = (datetime) => {
 }
 
 const loadData = async () => {
-  rooms.value = await meetingRoomRepo.findAll()
-  reservations.value = activeTab.value === 'future'
-    ? await reservationRepo.findFutureByUserId(userStore.userId)
-    : await reservationRepo.findPastByUserId(userStore.userId)
+  const roomsRes = await getMeetingRooms()
+  rooms.value = roomsRes.data || []
+
+  const resRes = await getMyReservations()
+  const allReservations = resRes.data || []
+
+  // 在前端过滤未来和历史预定
+  const now = dayjs()
+  if (activeTab.value === 'future') {
+    reservations.value = allReservations.filter(r => dayjs(r.start) >= now)
+  } else {
+    reservations.value = allReservations.filter(r => dayjs(r.start) < now)
+  }
 }
 
 const handleCancel = async (r) => {
   try {
     await showConfirmDialog({ content: '确定取消该预定吗？' })
-    await reservationRepo.delete(r.id)
+    await cancelReservation(r.id)
     showToast('已取消预定')
     loadData()
   } catch (e) {

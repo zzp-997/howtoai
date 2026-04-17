@@ -53,7 +53,9 @@
 
 <script setup>
 import { CheckCircleIcon, TimeIcon } from "tdesign-icons-vue-next"
-import { tripRepo, userRepo, todoRepo } from "@/db/repositories"
+import { getTrips, approveTrip } from "@/api/trips"
+import { getUsers } from "@/api/users"
+import { createTodo } from "@/api/todos"
 import { useUserStore } from "@/store"
 import { showToast, vibrateWithSettings, VIBRATE_PATTERNS } from "@/utils/common/tools"
 
@@ -73,10 +75,14 @@ const getUserName = (userId) => users.value.find(u => u.id === userId)?.name || 
 const getStatusLabel = (status) => ({ pending: '待审批', approved: '已通过', rejected: '已拒绝' }[status] || status)
 
 const handleApprove = async (trip, approved) => {
-  await tripRepo.approve(trip.id, approved, trip._comment || '', userStore.userId)
+  await approveTrip(trip.id, { approved, comment: trip._comment || '' })
   // 如果通过，创建待办任务
   if (approved) {
-    await todoRepo.createFromApproval(trip.userId, 'trip', '差旅归来，请提交报销申请', trip.id)
+    await createTodo({
+      title: '差旅归来，请提交报销申请',
+      relatedType: 'trip',
+      relatedId: trip.id
+    })
   }
   // 震动反馈
   vibrateWithSettings(approved ? VIBRATE_PATTERNS.success : VIBRATE_PATTERNS.normal)
@@ -85,8 +91,11 @@ const handleApprove = async (trip, approved) => {
 }
 
 const loadData = async () => {
-  users.value = await userRepo.findAll()
-  trips.value = await tripRepo.findAll()
+  const usersRes = await getUsers()
+  users.value = usersRes.data || []
+
+  const tripsRes = await getTrips()
+  trips.value = tripsRes.data || []
 }
 
 watch(activeStatus, () => loadData())

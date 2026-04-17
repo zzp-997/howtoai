@@ -1,14 +1,15 @@
 /**
  * 用户状态管理
- * 改为 IndexedDB 本地验证
+ * 对接 FastAPI 后端
  */
 import { defineStore } from "pinia";
-import { userRepo } from "@/db/repositories";
+import { login as loginApi, logout as logoutApi, getUserInfo } from "@/api";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
     userInfo: null,      // 当前登录用户信息
     role: null,          // 当前角色 'user' | 'admin'
+    token: null,         // JWT token
     isLoggedIn: false    // 登录状态
   }),
   getters: {
@@ -34,22 +35,30 @@ export const useUserStore = defineStore("user", {
      */
     async login(username, password, role) {
       try {
-        // 从 IndexedDB 验证
-        const user = await userRepo.validateLogin(username, password);
-        if (!user) {
-          throw new Error('用户名或密码错误');
+        // 调用后端登录 API
+        const res = await loginApi({ username, password, loginType: 1 });
+
+        if (!res || !res.data) {
+          throw new Error('登录失败');
         }
+
+        const { token, user } = res.data;
+
         // 验证角色是否匹配
         if (user.role !== role) {
           throw new Error('角色不匹配，请选择正确的角色');
         }
 
-        // 存储用户信息
+        // 存储 token 和用户信息
+        this.token = token;
         this.userInfo = {
           id: user.id,
           username: user.username,
           name: user.name,
           role: user.role,
+          department: user.department,
+          position: user.position,
+          avatar: user.avatar,
           annualLeaveBalance: user.annualLeaveBalance,
           sickLeaveBalance: user.sickLeaveBalance
         };
@@ -65,10 +74,32 @@ export const useUserStore = defineStore("user", {
     /**
      * 退出登录
      */
-    logout() {
+    async logout() {
+      try {
+        await logoutApi();
+      } catch (e) {
+        console.warn('登出请求失败', e);
+      }
       this.userInfo = null;
       this.role = null;
+      this.token = null;
       this.isLoggedIn = false;
+    },
+
+    /**
+     * 获取当前用户信息
+     */
+    async fetchUserInfo() {
+      try {
+        const res = await getUserInfo();
+        if (res && res.data) {
+          this.userInfo = res.data;
+          this.role = res.data.role;
+        }
+        return res?.data;
+      } catch (error) {
+        throw error;
+      }
     },
 
     /**
@@ -76,21 +107,18 @@ export const useUserStore = defineStore("user", {
      * @param {string} leaveType 'annual' | 'sick'
      * @param {number} days 变化量（负数为减少）
      */
-    async updateLeaveBalance(leaveType, days) {
+    updateLeaveBalance(leaveType, days) {
       if (!this.userInfo) return;
 
-      const updatedUser = await userRepo.updateLeaveBalance(
-        this.userInfo.id,
-        leaveType,
-        days
-      );
-
-      this.userInfo.annualLeaveBalance = updatedUser.annualLeaveBalance;
-      this.userInfo.sickLeaveBalance = updatedUser.sickLeaveBalance;
+      if (leaveType === 'annual') {
+        this.userInfo.annualLeaveBalance = Math.max(0, this.userInfo.annualLeaveBalance + days);
+      } else if (leaveType === 'sick') {
+        this.userInfo.sickLeaveBalance = Math.max(0, this.userInfo.sickLeaveBalance + days);
+      }
     }
   },
   persist: {
     key: 'office_user',
-    pick: ['userInfo', 'role', 'isLoggedIn']
+    pick: ['userInfo', 'role', 'token', 'isLoggedIn']
   }
 });

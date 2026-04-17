@@ -34,7 +34,7 @@
 
 <script setup>
 import { ViewListIcon } from "tdesign-icons-vue-next"
-import { announcementRepo, userRepo } from "@/db/repositories"
+import { getAnnouncement, markAnnouncementRead } from "@/api"
 import { useUserStore } from "@/store"
 import { useRouter, useRoute } from "vue-router"
 import dayjs from "dayjs"
@@ -55,12 +55,14 @@ const getPublisherName = () => {
 
 const loadDetail = async () => {
   const id = Number(route.params.id)
-  announcement.value = await announcementRepo.findById(id)
-  users.value = await userRepo.findAll()
+  const res = await getAnnouncement(id)
+  announcement.value = res.data
 
-  // 标记已读
-  if (announcement.value && !(announcement.value.readBy || []).includes(userStore.userId)) {
-    await announcementRepo.markAsRead(id, userStore.userId)
+  // 标记已读（getAnnouncement 会自动标记已读，这里可以再次确认）
+  try {
+    await markAnnouncementRead(id)
+  } catch (e) {
+    // 忽略错误
   }
 }
 

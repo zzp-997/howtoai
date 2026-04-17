@@ -20,27 +20,10 @@ import { store } from './store';
 import { setupGlobDirectives } from '@/directives';
 import { useSettingsStore } from '@/store/modules/settings';
 
-// IndexedDB 数据库初始化
-import { initDB } from '@/db';
-import { insertSeedData } from '@/db/seed';
+// Mock 数据 - 已禁用，使用后端 API
 
-// Mock 数据 - 仅在开发环境启用
-if (import.meta.env.VITE_USE_MOCK === 'true') {
-  import('@/api/mock');
-}
-
-// 初始化数据库后再挂载应用
+// 初始化应用
 async function bootstrap() {
-  try {
-    // 初始化 IndexedDB
-    const db = await initDB();
-    // 插入预置数据
-    await insertSeedData(db);
-    console.log('数据库初始化完成');
-  } catch (error) {
-    console.error('数据库初始化失败:', error);
-  }
-
   const app = createApp(App);
 
   app.use(router);

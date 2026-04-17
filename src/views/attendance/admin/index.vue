@@ -72,7 +72,8 @@
 </template>
 
 <script setup>
-import { attendanceConfigRepo, userRepo } from "@/db/repositories"
+import { getAttendanceConfigs, setAttendanceConfig } from "@/api/configs"
+import { getUsers, updateUser } from "@/api/users"
 import { useRouter } from "vue-router"
 import { showToast } from "@/utils/common/tools"
 
@@ -88,14 +89,20 @@ const editUser = ref(null)
 const leaveForm = reactive({ annualLeaveBalance: 0, sickLeaveBalance: 0 })
 
 const loadConfig = async () => {
-  const data = await attendanceConfigRepo.getAllConfig()
-  config.workStartTime = data.workStartTime || "09:00"
-  config.workEndTime = data.workEndTime || "18:00"
-  config.lateThresholdMinutes = data.lateThresholdMinutes || "0"
-  config.allowMakeUp = data.allowMakeUp === "true"
+  const res = await getAttendanceConfigs()
+  const data = res.data || []
+  const getConfig = (key) => data.find(c => c.key === key)?.value
+
+  config.workStartTime = getConfig('workStartTime') || "09:00"
+  config.workEndTime = getConfig('workEndTime') || "18:00"
+  config.lateThresholdMinutes = getConfig('lateThresholdMinutes') || "0"
+  config.allowMakeUp = getConfig('allowMakeUp') === "true"
 }
 
-const loadUsers = async () => { users.value = await userRepo.findAll() }
+const loadUsers = async () => {
+  const res = await getUsers()
+  users.value = res.data || []
+}
 
 const editConfig = (key) => {
   configKey.value = key
@@ -106,14 +113,14 @@ const editConfig = (key) => {
 }
 
 const saveConfigValue = async () => {
-  await attendanceConfigRepo.setValue(configKey.value, configValue.value)
+  await setAttendanceConfig({ key: configKey.value, value: configValue.value })
   config[configKey.value] = configValue.value
   showToast("已保存")
   showConfigDialog.value = false
 }
 
 const saveConfig = async () => {
-  await attendanceConfigRepo.setValue("allowMakeUp", config.allowMakeUp.toString())
+  await setAttendanceConfig({ key: "allowMakeUp", value: config.allowMakeUp.toString() })
 }
 
 const editLeaveBalance = (user) => {
@@ -125,7 +132,10 @@ const editLeaveBalance = (user) => {
 
 const saveLeaveBalance = async () => {
   if (!editUser.value) return
-  await userRepo.update(editUser.value.id, { annualLeaveBalance: Math.max(0, leaveForm.annualLeaveBalance), sickLeaveBalance: Math.max(0, leaveForm.sickLeaveBalance) })
+  await updateUser(editUser.value.id, {
+    annualLeaveBalance: Math.max(0, leaveForm.annualLeaveBalance),
+    sickLeaveBalance: Math.max(0, leaveForm.sickLeaveBalance)
+  })
   showToast("已保存")
   showLeaveDialog.value = false
   loadUsers()

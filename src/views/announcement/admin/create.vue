@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import { announcementRepo } from "@/db/repositories"
+import { createAnnouncement } from "@/api/announcements"
 import { useUserStore } from "@/store"
 import { showToast, showErrorDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
@@ -72,14 +72,13 @@ const handleSubmit = async () => {
 
   loading.value = true
   try {
-    await announcementRepo.create({
+    await createAnnouncement({
       title: form.title.trim(),
       content: form.content.trim(),
+      summary: form.content.trim().substring(0, 100),
       isTop: form.isTop,
       isRemind: form.isRemind,
-      publishTime: new Date(),
-      publishedBy: userStore.userId,
-      readBy: []
+      category: 'notice'
     })
     showToast('发布成功')
     router.back()

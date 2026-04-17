@@ -40,7 +40,7 @@
 
 <script setup>
 import { AddIcon, NotificationIcon, ViewListIcon } from "tdesign-icons-vue-next"
-import { announcementRepo } from "@/db/repositories"
+import { getAnnouncements, deleteAnnouncement } from "@/api/announcements"
 import { showToast, showConfirmDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
 import dayjs from "dayjs"
@@ -52,13 +52,14 @@ const announcements = ref([])
 const formatDate = (date) => dayjs(date).format('YYYY-MM-DD HH:mm')
 
 const loadAnnouncements = async () => {
-  announcements.value = await announcementRepo.findAllOrdered()
+  const res = await getAnnouncements()
+  announcements.value = res.data || []
 }
 
 const handleDelete = async (item) => {
   try {
     await showConfirmDialog({ content: `确定删除公告「${item.title}」吗？` })
-    await announcementRepo.delete(item.id)
+    await deleteAnnouncement(item.id)
     showToast('已删除')
     loadAnnouncements()
   } catch (e) {
