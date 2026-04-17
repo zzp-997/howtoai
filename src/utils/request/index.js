@@ -222,7 +222,7 @@ function createAxios(opt) {
         transform,
         requestOptions: {
           apiUrl: host,
-          isJoinPrefix: import.meta.env.VITE_IS_REQUEST_PROXY === 'true',
+          isJoinPrefix: true,
           urlPrefix: import.meta.env.VITE_API_URL_PREFIX,
           isReturnNativeResponse: false,
           isTransformResponse: true,
