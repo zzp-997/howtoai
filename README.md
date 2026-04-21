@@ -1,5 +1,7 @@
 # 极智协同
 
+![Deploy](https://github.com/zzp-997/howtoai/actions/workflows/deploy.yml/badge.svg)
+
 一款基于 Vue 3 的移动端企业 OA 办公应用，提供会议预定、差旅申请、请假打卡、文档查询、待办事项、公告通知等功能，支持普通员工和管理员两种角色。
 
 ## 技术栈
