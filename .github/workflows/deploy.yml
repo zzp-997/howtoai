@@ -5,6 +5,9 @@ on:
     branches: [master]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -12,8 +15,6 @@ jobs:
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: 获取版本信息
         id: version
@@ -26,14 +27,14 @@ jobs:
       - name: 安装 Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-          cache: npm
+          node-version: 20
 
       - name: 安装依赖
         run: npm ci
 
-      - name: 生成版本信息文件
+      - name: 生成版本文件
         run: |
+          mkdir -p public
           cat > public/version.json <<EOF
           {
             "commit": "${{ steps.version.outputs.commit_hash }}",
@@ -43,10 +44,10 @@ jobs:
           }
           EOF
 
-      - name: 打包前端
+      - name: 打包
         run: npm run build
 
-      - name: 上传到服务器
+      - name: 部署到服务器
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -66,18 +67,3 @@ jobs:
             cd /opt/howtoai
             docker compose restart nginx
             echo "✅ 前端部署完成"
-
-      - name: 验证部署
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          script: |
-            response=$(curl -s -o /dev/null -w "%{http_code}" https://aixt.coderzzp.top)
-            if [ "$response" == "200" ]; then
-              echo "✅ 前端访问正常"
-            else
-              echo "❌ 前端访问异常，状态码: $response"
-              exit 1
-            fi

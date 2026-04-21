@@ -7,14 +7,14 @@ context: |
   极智协同 - 企业办公协同移动端应用
 
   ## 技术栈
-  - **前端框架**: Vue 3 + Composition API
+  - **前端框架**: Vue 3.5 + Composition API
   - **构建工具**: Vite 6
-  - **UI组件库**: TDesign Mobile Vue（主）+ Vant（辅）
+  - **UI组件库**: TDesign Mobile Vue 1.6（主）+ Vant 4（辅）
   - **状态管理**: Pinia + pinia-plugin-persistedstate
   - **路由**: Vue Router 4
-  - **样式方案**: Tailwind CSS + Less + postcss-px-to-viewport（750设计稿）
-  - **本地存储**: IndexedDB（数据持久化）
-  - **工具库**: dayjs、lodash、axios
+  - **样式方案**: Tailwind CSS 3.4 + Less + postcss-px-to-viewport（750设计稿）
+  - **HTTP 请求**: Axios + 统一请求封装
+  - **工具库**: dayjs、lodash、gsap（动画）、nprogress
 
   ## 目录结构
   ```
@@ -32,36 +32,63 @@ context: |
   │   ├── expense/    # 报销申请
   │   ├── settings/   # 设置
   │   └── approval/   # 审批中心（管理员）
-  ├── components/     # 公共组件（Root、Tabbar等）
-  ├── db/             # IndexedDB 数据层
-  │   ├── index.js    # 数据库初始化
-  │   └── repositories/# 数据仓库（Repo模式）
+  ├── components/     # 公共组件（root.vue、Tabbar.vue）
+  ├── api/            # API 接口层
+  │   ├── auth.js     # 认证接口
+  │   ├── users.js    # 用户接口
+  │   ├── meeting-rooms.js
+  │   ├── reservations.js
+  │   ├── trips.js
+  │   ├── leaves.js
+  │   ├── attendance.js
+  │   ├── todos.js
+  │   ├── announcements.js
+  │   ├── documents.js
+  │   ├── expenses.js
+  │   └── configs.js  # 配置接口
   ├── store/          # Pinia 状态管理
   │   └── modules/    # 状态模块（user、settings、permission）
   ├── router/         # 路由配置
-  ├── api/            # API 接口层
   ├── utils/          # 工具函数
+  │   ├── common/     # 通用工具
+  │   ├── request/    # 请求封装
+  │   └── smartRecommend.js  # 智能推荐
   ├── style/          # 全局样式
   ├── directives/     # Vue 自定义指令
   └── types/          # TypeScript 类型定义
   ```
 
-  ## 数据库表（IndexedDB）
-  users, meeting_rooms, reservations, trips, leaves, attendances,
-  make_up_requests, attendance_config, documents, document_categories,
-  todos, announcements, user_preferences, trip_templates, city_configs,
-  holiday_configs, document_view_logs, search_histories, expense_claims
+  ## API 模块
+  - **auth**: 用户认证（登录/登出）
+  - **users**: 用户信息管理
+  - **meeting-rooms**: 会议室管理
+  - **reservations**: 会议预定
+  - **trips**: 差旅申请
+  - **leaves**: 请假申请
+  - **attendance**: 考勤打卡
+  - **todos**: 待办任务
+  - **announcements**: 公告通知
+  - **documents**: 文档管理
+  - **expenses**: 报销申请
+  - **configs**: 系统配置（用户偏好、城市配置、假期配置等）
 
   ## 业务模块
   - **用户端**: 会议预定、差旅出行、请假打卡、待办任务、公告通知、文档查询、智能推荐、报销申请
   - **管理端**: 会议室管理、审批中心、文档管理、考勤管理、公告管理
+  - **智能推荐**: 会议室推荐、差旅行程提醒
+
+  ## 部署流程
+  - **CI/CD**: GitHub Actions 自动部署
+  - **触发条件**: 推送 master 分支
+  - **版本追踪**: 构建时生成 version.json（commit hash、提交信息、部署时间、部署者）
+  - **部署目标**: 服务器 /opt/howtoai/frontend/dist
 
   ## 编码规范
   - 使用中文注释、中文提交信息
   - 变量名、函数名使用英文（camelCase）
   - CSS 使用 Tailwind 原子类，尺寸单位为 px（自动转 vw）
   - 组件使用 TDesign 或 Vant 组件优先
-  - 数据操作通过 repositories 层
+  - 数据操作通过 API 层（src/api/）
 
 # Per-artifact rules
 # 工件规则
@@ -72,7 +99,7 @@ rules:
     - 明确标注影响范围（用户端/管理端/两端）
   design:
     - 设计文档需包含数据流图
-    - 涉及数据库变更需说明表结构变化
+    - 涉及 API 变更需说明接口定义
     - UI 变更需说明使用的组件库（TDesign/Vant）
   tasks:
     - 任务拆分粒度控制在 30 分钟内
