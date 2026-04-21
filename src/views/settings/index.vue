@@ -153,6 +153,9 @@
       <!-- 版本信息 -->
       <div class="text-center py-[32px] pb-[160px]">
         <div class="text-[22px] text-[var(--text-tertiary)]">极智协同 v1.0.0</div>
+        <div v-if="deployVersion" class="text-[20px] text-[var(--text-tertiary)] mt-[8px]">
+          构建: {{ deployVersion.commit }} · {{ deployVersion.deploy_time }}
+        </div>
       </div>
     </div>
 
@@ -213,7 +216,7 @@ import {
 } from "tdesign-icons-vue-next"
 import { useSettingsStore } from "@/store/modules/settings"
 import { showToast, showConfirmDialog } from "@/utils/common/tools"
-import { ref, computed } from "vue"
+import { ref, computed, onMounted } from "vue"
 import { useUserStore } from "@/store"
 import { useRouter } from "vue-router"
 
@@ -223,6 +226,19 @@ const router = useRouter()
 const fileInput = ref(null)
 const showThemePicker = ref(false)
 const showPagePicker = ref(false)
+const deployVersion = ref(null)
+
+// 获取部署版本信息
+onMounted(async () => {
+  try {
+    const response = await fetch('/version.json')
+    if (response.ok) {
+      deployVersion.value = await response.json()
+    }
+  } catch (e) {
+    console.log('获取版本信息失败')
+  }
+})
 
 // 响应式绑定
 const compactModeValue = computed({
