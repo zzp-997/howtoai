@@ -1,6 +1,28 @@
 <template>
   <Root title="设置" back-url="/user">
     <div class="min-h-screen bg-[var(--bg-secondary)] pb-[150px]">
+      <!-- 账户安全 -->
+      <div class="p-[24px] px-[32px]">
+        <div class="text-[26px] text-[var(--text-tertiary)] mb-[16px]">账户安全</div>
+        <div class="bg-[var(--bg-primary)] rounded-[24px] shadow-sm overflow-hidden">
+          <!-- 修改密码 -->
+          <div class="p-[24px] cursor-pointer" @click="router.push('/user/settings/password')">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-[16px]">
+                <div class="w-[48px] h-[48px] rounded-[12px] bg-gradient-to-br from-[#E34D59] to-[#F06956] flex items-center justify-center">
+                  <LockOnIcon class="text-[24px] text-white" />
+                </div>
+                <div>
+                  <div class="text-[28px] text-[var(--text-primary)]">修改密码</div>
+                  <div class="text-[22px] text-[var(--text-tertiary)]">定期更换密码保障账户安全</div>
+                </div>
+              </div>
+              <ChevronRightIcon class="text-[24px] text-[var(--text-tertiary)]" />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 外观设置 -->
       <div class="p-[24px] px-[32px]">
         <div class="text-[26px] text-[var(--text-tertiary)] mb-[16px]">外观</div>
@@ -212,7 +234,8 @@ import {
   DeleteIcon,
   HomeIcon,
   ViewListIcon,
-  SettingIcon
+  SettingIcon,
+  LockOnIcon
 } from "tdesign-icons-vue-next"
 import { useSettingsStore } from "@/store/modules/settings"
 import { showToast, showConfirmDialog } from "@/utils/common/tools"

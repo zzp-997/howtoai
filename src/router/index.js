@@ -231,6 +231,122 @@ const userRoutes = [
       role: "user",
       level: 1
     }
+  },
+  {
+    path: "/user/settings/password",
+    name: "userPassword",
+    component: () => import("@/views/settings/password.vue"),
+    meta: {
+      title: "修改密码",
+      requiresAuth: true,
+      role: "user",
+      level: 2
+    }
+  },
+  // 消息中心
+  {
+    path: "/user/message",
+    name: "userMessage",
+    component: () => import("@/views/message/index.vue"),
+    meta: {
+      title: "消息中心",
+      requiresAuth: true,
+      role: "user",
+      level: 1
+    }
+  },
+  // 意见反馈
+  {
+    path: "/user/feedback",
+    name: "userFeedback",
+    component: () => import("@/views/feedback/index.vue"),
+    meta: {
+      title: "意见反馈",
+      requiresAuth: true,
+      role: "user",
+      level: 2
+    }
+  },
+  // 数据统计
+  {
+    path: "/user/stats",
+    name: "userStats",
+    component: () => import("@/views/stats/dashboard.vue"),
+    meta: {
+      title: "数据统计",
+      requiresAuth: true,
+      role: "user",
+      level: 2
+    }
+  },
+  // 知识库
+  {
+    path: "/user/knowledge",
+    name: "userKnowledge",
+    component: () => import("@/views/knowledge/index.vue"),
+    meta: {
+      title: "知识库",
+      requiresAuth: true,
+      role: "user",
+      level: 1
+    }
+  },
+  {
+    path: "/user/knowledge/:id",
+    name: "userKnowledgeDetail",
+    component: () => import("@/views/knowledge/detail.vue"),
+    meta: {
+      title: "知识详情",
+      requiresAuth: true,
+      role: "user",
+      level: 2
+    }
+  },
+  // 会议智能推荐
+  {
+    path: "/user/meeting/smart",
+    name: "userMeetingSmart",
+    component: () => import("@/views/meeting/smart.vue"),
+    meta: {
+      title: "智能推荐",
+      requiresAuth: true,
+      role: "user",
+      level: 2
+    }
+  },
+  // 任务看板
+  {
+    path: "/user/task/board",
+    name: "userTaskBoard",
+    component: () => import("@/views/task/board.vue"),
+    meta: {
+      title: "任务看板",
+      requiresAuth: true,
+      role: "user",
+      level: 1
+    }
+  },
+  {
+    path: "/user/task/create",
+    name: "userTaskCreate",
+    component: () => import("@/views/task/create.vue"),
+    meta: {
+      title: "新建任务",
+      requiresAuth: true,
+      role: "user",
+      level: 2
+    }
+  },
+  {
+    path: "/user/task/:id",
+    name: "userTaskDetail",
+    component: () => import("@/views/task/detail.vue"),
+    meta: {
+      title: "任务详情",
+      requiresAuth: true,
+      role: "user",
+      level: 2
+    }
   }
 ];
 

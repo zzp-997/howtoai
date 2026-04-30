@@ -413,6 +413,13 @@
             <div class="absolute top-[-10px] right-[-10px] w-[80px] h-[80px] opacity-[0.03] transform translate-x-[10px] -translate-y-[10px]">
               <component :is="item.icon" class="text-[100px]" :style="{ color: item.color }" />
             </div>
+            <!-- 未读消息角标 -->
+            <div
+              v-if="item.showUnread && unreadMessageCount > 0"
+              class="absolute top-[8px] right-[8px] min-w-[24px] h-[24px] bg-gradient-to-br from-[#E34D59] to-[#F06956] rounded-full flex items-center justify-center px-[6px] shadow-lg z-20"
+            >
+              <span class="text-[14px] text-white font-bold">{{ unreadMessageCount > 99 ? '99+' : unreadMessageCount }}</span>
+            </div>
             <div
               class="w-[48px] h-[48px] rounded-[14px] flex items-center justify-center mb-[12px] relative z-10"
               :style="{ background: item.gradient, boxShadow: `0 8px 24px ${item.color}25` }"
@@ -490,7 +497,8 @@ import {
   LogoutIcon,
   LightbulbIcon,
   UserIcon,
-  MoneyIcon
+  MoneyIcon,
+  ChatIcon
 } from "tdesign-icons-vue-next"
 import { useUserStore } from "@/store"
 import { showToast } from "@/utils/common/tools"
@@ -505,6 +513,7 @@ import {
   checkOut,
   getAttendanceConfigs
 } from "@/api"
+import { getUnreadCount } from "@/api/message"
 
 // 公告分类常量（从原 repository 复制）
 const ANNOUNCEMENT_CATEGORIES = {
@@ -519,6 +528,7 @@ import dayjs from "dayjs"
 const router = useRouter()
 const userStore = useUserStore()
 const unreadAnnouncementCount = ref(0)
+const unreadMessageCount = ref(0)
 const showAnnouncementPopup = ref(false)
 const popupAnnouncements = ref([])
 const currentPopupIndex = ref(0)
@@ -548,9 +558,11 @@ const userMenuList = [
   { id: 1, title: '会议预定', desc: '会议室预约', icon: CalendarIcon, gradient: 'linear-gradient(135deg, #0052D9 0%, #266FE8 100%)', color: '#0052D9', path: '/user/meeting' },
   { id: 2, title: '差旅出行', desc: '出差申请', icon: LocationIcon, gradient: 'linear-gradient(135deg, #00A870 0%, #2BA471 100%)', color: '#00A870', path: '/user/trip' },
   { id: 3, title: '请假打卡', desc: '考勤管理', icon: UserTalkIcon, gradient: 'linear-gradient(135deg, #ED7B2F 0%, #F09143 100%)', color: '#ED7B2F', path: '/user/attendance' },
-  { id: 4, title: '文档查询', desc: '公司资料', icon: FolderIcon, gradient: 'linear-gradient(135deg, #E34D59 0%, #F06956 100%)', color: '#E34D59', path: '/user/document' },
-  { id: 5, title: '我的待办', desc: '任务管理', icon: Edit1Icon, gradient: 'linear-gradient(135deg, #7B61FF 0%, #9B8AFF 100%)', color: '#7B61FF', path: '/user/todo' },
-  { id: 6, title: '公告通知', desc: '企业动态', icon: NotificationIcon, gradient: 'linear-gradient(135deg, #FF7D7D 0%, #FFA8A8 100%)', color: '#FF7D7D', path: '/user/announcement' }
+  { id: 4, title: '任务看板', desc: '团队协作', icon: Edit1Icon, gradient: 'linear-gradient(135deg, #7B61FF 0%, #9B8AFF 100%)', color: '#7B61FF', path: '/user/task/board' },
+  { id: 5, title: '文档查询', desc: '公司资料', icon: FolderIcon, gradient: 'linear-gradient(135deg, #E34D59 0%, #F06956 100%)', color: '#E34D59', path: '/user/document' },
+  { id: 6, title: '公告通知', desc: '企业动态', icon: NotificationIcon, gradient: 'linear-gradient(135deg, #FF7D7D 0%, #FFA8A8 100%)', color: '#FF7D7D', path: '/user/announcement' },
+  { id: 7, title: '消息中心', desc: '未读消息', icon: NotificationIcon, gradient: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)', color: '#3B82F6', path: '/user/message', showUnread: true },
+  { id: 8, title: '意见反馈', desc: '问题建议', icon: ChatIcon, gradient: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)', color: '#F59E0B', path: '/user/feedback' }
 ]
 
 const adminMenuList = [
@@ -962,6 +974,18 @@ const handleLogout = () => {
   showToast('已退出登录')
 }
 
+// 加载未读消息数量
+const loadUnreadMessageCount = async () => {
+  if (!userStore.isAdmin) {
+    try {
+      const res = await getUnreadCount()
+      unreadMessageCount.value = res.data?.total || res.data?.count || 0
+    } catch (error) {
+      console.error('获取未读消息数量失败:', error)
+    }
+  }
+}
+
 onMounted(() => {
   loadTodos()
   loadAnnouncements()
@@ -969,6 +993,7 @@ onMounted(() => {
   loadMeetingRecommendations()
   loadTripReminders()
   loadExpenseReminders()
+  loadUnreadMessageCount()
 })
 
 onUnmounted(() => {

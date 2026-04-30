@@ -6,7 +6,23 @@
       "Bash(openspec status *)",
       "Bash(openspec instructions *)",
       "WebFetch(domain:github.com)",
-      "Bash(openspec list *)"
+      "Bash(openspec list *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://0.0.0.0:8000/api/v1/auth/login -X POST -H \"Content-Type: application/json\" -d '{\"username\":\"test\",\"password\":\"test\"}')",
+      "Bash(npx vue-tsc *)",
+      "Bash(npx eslint *)",
+      "Bash(node -c src/api/mock/index.js)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/)",
+      "Bash(curl *)",
+      "mcp__ide__getDiagnostics",
+      "Bash(node tests/phase1-regression.test.js)",
+      "Bash(node *)",
+      "Bash(npm install *)",
+      "Bash(npm list *)",
+      "Bash(npx playwright *)",
+      "Bash(dir \"D:\\\\coderzzp\\\\howtoai\\\\src\\\\views\" /b)"
     ]
   }
 }

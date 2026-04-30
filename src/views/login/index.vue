@@ -64,6 +64,53 @@
           </div>
         </div>
 
+        <!-- Alert警告提示组件 -->
+        <Transition name="shake">
+          <div
+            v-if="showAlert"
+            class="alert-box mb-[20px] p-[16px] rounded-[12px] relative z-10"
+            :class="isLockAlert ? 'lock-alert' : 'error-alert'"
+          >
+            <div class="flex items-start gap-[12px]">
+              <div class="alert-icon flex-shrink-0 w-[24px] h-[24px] flex items-center justify-center">
+                <t-icon v-if="isLockAlert" name="lock-on" class="text-[20px]" />
+                <t-icon v-else name="error-circle" class="text-[20px]" />
+              </div>
+              <div class="flex-1">
+                <p class="alert-message text-[16px] leading-[1.6]">{{ alertMessage }}</p>
+                <!-- 锁定期间显示倒计时 -->
+                <div v-if="isLockAlert" class="countdown-timer mt-[12px] flex items-center gap-[16px]">
+                  <span class="text-[18px] font-medium">{{ formattedLockTime }}</span>
+                </div>
+                <!-- 联系管理员链接 -->
+                <div v-if="isLockAlert" class="mt-[12px]">
+                  <a href="javascript:void(0)" class="text-[14px] underline hover:no-underline text-white/70 hover:text-white transition-colors">
+                    联系管理员解锁
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Transition>
+
+        <!-- 剩余尝试次数指示器 -->
+        <div v-if="showAttemptsIndicator" class="attempts-indicator mb-[16px] relative z-10">
+          <div class="flex items-center justify-center gap-[10px]">
+            <span class="text-[14px] text-white/50 mr-[8px]">剩余尝试:</span>
+            <div class="flex gap-[8px]">
+              <span
+                v-for="i in 5"
+                :key="i"
+                class="attempt-dot w-[12px] h-[12px] rounded-full transition-all duration-300"
+                :class="i <= remainingAttempts ? 'bg-[#4dd9a0] dot-active' : 'bg-[#e34d59] dot-used'"
+              ></span>
+            </div>
+            <span class="text-[14px] ml-[8px]" :class="remainingAttempts <= 1 ? 'text-[#e34d59]' : 'text-white/50'">
+              {{ remainingAttempts }}/5
+            </span>
+          </div>
+        </div>
+
         <!-- 表单区域 -->
         <div class="mb-[24px] relative z-10">
           <div class="input-wrapper flex items-center bg-white/8 rounded-[12px] px-[20px] py-[12px] mb-[12px] border border-white/10 transition-all duration-300 hover:border-[#0052D9]/40 hover:bg-white/12 group">
@@ -99,10 +146,15 @@
           block
           size="large"
           :loading="loading"
+          :disabled="isLocked"
           class="login-btn h-[72px] text-[30px] font-medium rounded-[14px] !bg-gradient-to-br !from-[#0052D9] !to-[#266FE8] shadow-lg shadow-[#0052D9]/40 relative mb-[18px]"
           @click="handleLogin"
         >
-          <span class="relative z-10">登 录</span>
+          <span v-if="isLocked" class="relative z-10 flex items-center justify-center gap-[8px]">
+            <t-icon name="lock-on" class="text-[24px]" />
+            账户锁定中 ({{ formattedLockTime }})
+          </span>
+          <span v-else class="relative z-10">登 录</span>
         </t-button>
 
         <!-- 测试账号提示 -->
@@ -133,9 +185,9 @@
 </template>
 
 <script setup>
-import { UserIcon, LockOnIcon, UserTalkIcon } from "tdesign-icons-vue-next"
+import { UserIcon, LockOnIcon, UserTalkIcon, ErrorCircleIcon } from "tdesign-icons-vue-next"
 import { useUserStore } from "@/store"
-import { showToast, showErrorDialog } from "@/utils/common/tools"
+import { showToast, showErrorDialog, showErrorToast, showConfirmDialog } from "@/utils/common/tools"
 import { useRouter } from "vue-router"
 
 const router = useRouter()
@@ -149,6 +201,99 @@ const formData = reactive({
 })
 
 const loading = ref(false)
+
+// 账户锁定状态
+const isLocked = ref(false)
+const lockSeconds = ref(0)
+const remainingAttempts = ref(5)
+
+// Alert警告提示状态
+const showAlert = ref(false)
+const alertMessage = ref('')
+const isLockAlert = ref(false)
+
+// 显示剩余次数指示器
+const showAttemptsIndicator = computed(() => {
+  return remainingAttempts.value !== null && remainingAttempts.value >= 0 && remainingAttempts.value < 5
+})
+
+// 格式化锁定时间 (mm:ss)
+const formattedLockTime = computed(() => {
+  const minutes = Math.floor(lockSeconds.value / 60)
+  const seconds = lockSeconds.value % 60
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+})
+
+// 倒计时定时器
+let lockTimer = null
+
+/**
+ * 启动锁定倒计时
+ * @param {number} seconds - 锁定秒数
+ */
+const startLockCountdown = (seconds) => {
+  // 清除现有定时器
+  if (lockTimer) {
+    clearInterval(lockTimer)
+  }
+
+  lockSeconds.value = seconds
+  isLocked.value = true
+  remainingAttempts.value = 0
+
+  // 显示锁定Alert
+  const minutes = Math.ceil(seconds / 60)
+  alertMessage.value = `账户已锁定，请${minutes}分钟后重试`
+  isLockAlert.value = true
+  showAlert.value = true
+
+  // 每秒更新一次
+  lockTimer = setInterval(() => {
+    lockSeconds.value -= 1
+
+    // 倒计时结束，解锁
+    if (lockSeconds.value <= 0) {
+      clearInterval(lockTimer)
+      lockTimer = null
+      isLocked.value = false
+      lockSeconds.value = 0
+      remainingAttempts.value = 5
+      showAlert.value = false
+    }
+  }, 1000)
+}
+
+/**
+ * 停止锁定倒计时
+ */
+const stopLockCountdown = () => {
+  if (lockTimer) {
+    clearInterval(lockTimer)
+    lockTimer = null
+  }
+  isLocked.value = false
+  lockSeconds.value = 0
+  remainingAttempts.value = 5
+  showAlert.value = false
+}
+
+/**
+ * 显示错误Alert
+ * @param {string} message - 错误消息
+ * @param {boolean} isLock - 是否是锁定状态
+ */
+const showErrorAlert = (message, isLock = false) => {
+  alertMessage.value = message
+  isLockAlert.value = isLock
+  showAlert.value = true
+}
+
+/**
+ * 隐藏错误Alert
+ */
+const hideErrorAlert = () => {
+  showAlert.value = false
+}
 
 // 鼠标位置
 const mouseX = ref(0)
@@ -224,21 +369,142 @@ const handleLogin = async () => {
     return
   }
 
+  // 检查账户是否被锁定
+  if (isLocked.value && lockSeconds.value > 0) {
+    showErrorToast(`账户已锁定，请${formattedLockTime.value}后再试`)
+    return
+  }
+
   loading.value = true
   try {
-    await userStore.login(formData.username, formData.password, selectedRole.value)
+    const loginResult = await userStore.login(formData.username, formData.password, selectedRole.value)
     showToast('登录成功')
 
-    if (selectedRole.value === 'admin') {
-      router.push('/admin')
+    // 重置锁定状态
+    stopLockCountdown()
+    remainingAttempts.value = 5
+
+    // 检查密码过期状态
+    if (loginResult && loginResult.passwordExpiry) {
+      handlePasswordExpiry(loginResult.passwordExpiry)
     } else {
-      router.push('/user')
+      // 没有过期提醒，直接跳转
+      navigateAfterLogin()
     }
   } catch (error) {
-    showErrorDialog(error.message || '登录失败，请重试')
+    // 解析后端返回的错误详情
+    handleLoginError(error)
   } finally {
     loading.value = false
   }
+}
+
+/**
+ * 处理密码过期状态
+ * @param {Object} passwordExpiry - 密码过期信息
+ */
+const handlePasswordExpiry = (passwordExpiry) => {
+  const { isExpired, daysRemaining, isExpiringSoon } = passwordExpiry
+
+  // 密码已过期，必须修改
+  if (isExpired) {
+    showErrorDialog('您的密码已过期，请修改密码后继续使用。\n\n为了账户安全，请设置新密码。').then(() => {
+      router.push('/user/settings/password')
+    })
+    return
+  }
+
+  // 密码即将过期（7天内），提醒用户
+  if (isExpiringSoon || daysRemaining <= 7) {
+    showConfirmDialog({
+      title: '密码即将过期',
+      content: `您的密码将在 ${daysRemaining} 天后过期。\n\n为了不影响正常使用，建议您尽快修改密码。`,
+      confirmBtn: '立即修改',
+      cancelBtn: '稍后提醒'
+    }).then(() => {
+      router.push('/user/settings/password')
+    }).catch(() => {
+      navigateAfterLogin()
+    })
+    return
+  }
+
+  // 密码正常，直接跳转
+  navigateAfterLogin()
+}
+
+/**
+ * 登录成功后跳转
+ */
+const navigateAfterLogin = () => {
+  if (selectedRole.value === 'admin') {
+    router.push('/admin')
+  } else {
+    router.push('/user')
+  }
+}
+
+/**
+ * 处理登录错误
+ * 解析后端返回的错误详情并展示相应提示
+ * 根据测试用例要求显示不同错误信息
+ */
+const handleLoginError = (error) => {
+  const errorData = error.response?.data || error.data || {}
+  const errorCode = errorData.code || error.code
+  const errorMessage = errorData.message || error.message || '登录失败，请重试'
+
+  // 检查是否是账户锁定状态
+  if (errorData.locked || errorCode === 'ACCOUNT_LOCKED' || errorCode === 423) {
+    const remainingSeconds = errorData.remainingSeconds || errorData.lock_duration || errorData.lockDuration || 900 // 15分钟 = 900秒
+    // 启动倒计时
+    startLockCountdown(remainingSeconds)
+    return
+  }
+
+  // 检查是否是密码错误，显示剩余尝试次数
+  if (errorData.remainingAttempts !== undefined) {
+    remainingAttempts.value = errorData.remainingAttempts
+
+    // 根据测试用例显示不同的错误信息
+    if (remainingAttempts.value <= 0) {
+      // 第5次失败（锁定）
+      const lockDuration = errorData.lockDuration || 900 // 默认15分钟
+      startLockCountdown(lockDuration)
+    } else {
+      // 第1-4次失败，显示对应错误信息
+      const attempts = remainingAttempts.value
+      let message = ''
+
+      switch (attempts) {
+        case 4:
+          message = '用户名或密码错误，还剩4次尝试机会'
+          break
+        case 3:
+          message = '用户名或密码错误，还剩3次尝试机会'
+          break
+        case 2:
+          message = '用户名或密码错误，还剩2次尝试机会'
+          break
+        case 1:
+          message = '用户名或密码错误，还剩1次尝试机会'
+          break
+        default:
+          message = `用户名或密码错误，还剩${attempts}次尝试机会`
+      }
+
+      showErrorAlert(message, false)
+
+      // 延迟隐藏Alert
+      setTimeout(() => {
+        hideErrorAlert()
+      }, 3000)
+    }
+    return
+  }
+
+  // 其他错误情况
+  showErrorToast(errorMessage)
 }
 
 onMounted(() => {
@@ -250,6 +516,8 @@ onUnmounted(() => {
   if (animationId) {
     cancelAnimationFrame(animationId)
   }
+  // 清除锁定倒计时定时器
+  stopLockCountdown()
   window.removeEventListener('resize', initParticles)
 })
 </script>
@@ -440,5 +708,75 @@ onUnmounted(() => {
 [data-theme="dark"] .input-wrapper {
   background: rgba(30, 41, 59, 0.4) !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Alert警告框样式 */
+.alert-box {
+  background: rgba(227, 77, 89, 0.15);
+  border: 1px solid rgba(227, 77, 89, 0.3);
+  border-radius: 12px;
+}
+
+.alert-box .alert-icon {
+  color: #e34d59;
+}
+
+.alert-message {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 锁定Alert样式 */
+.lock-alert {
+  background: rgba(227, 77, 89, 0.2);
+  border-color: rgba(227, 77, 89, 0.4);
+}
+
+/* 错误Alert样式 */
+.error-alert {
+  background: rgba(227, 77, 89, 0.15);
+  border-color: rgba(227, 77, 89, 0.3);
+}
+
+/* 抖动动画 */
+.shake-enter-active {
+  animation: shake 0.5s ease-in-out;
+}
+
+.shake-leave-active {
+  animation: shake 0.3s ease-in-out reverse;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+/* 剩余尝试次数指示器 */
+.attempts-indicator {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.attempt-dot {
+  display: inline-block;
+}
+
+.dot-active {
+  background: #4dd9a0;
+  box-shadow: 0 0 8px rgba(77, 217, 160, 0.5);
+}
+
+.dot-used {
+  background: #e34d59;
+  box-shadow: 0 0 8px rgba(227, 77, 89, 0.5);
+  opacity: 0.8;
+}
+
+/* 倒计时样式 */
+.countdown-timer {
+  font-family: 'Courier New', monospace;
+  color: #e34d59;
 }
 </style>

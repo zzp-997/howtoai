@@ -11,9 +11,79 @@ import { formatRequestDate, joinTimestamp, setObjToUrlParams } from './utils';
 import { showToast } from '../common/tools';
 import { Dialog } from 'tdesign-mobile-vue';
 
+/**
+ * 解析JWT Token获取payload
+ * @param {string} token - JWT token
+ * @returns {Object|null} payload对象或null
+ */
+function parseJwt(token) {
+  try {
+    if (!token) return null;
+    const base64Url = token.split('.')[1];
+    if (!base64Url) return null;
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.warn('解析JWT Token失败:', e);
+    return null;
+  }
+}
+
+/**
+ * 检查Token是否即将过期（5分钟内）
+ * @param {string} token - JWT token
+ * @returns {boolean} 是否即将过期
+ */
+function isTokenExpiringSoon(token) {
+  const payload = parseJwt(token);
+  if (!payload || !payload.exp) return false;
+
+  const expiresAt = payload.exp * 1000; // 转换为毫秒
+  const now = Date.now();
+  const fiveMinutes = 5 * 60 * 1000;
+
+  return (expiresAt - now) < fiveMinutes;
+}
+
 const host = import.meta.env.VITE_IS_REQUEST_PROXY === 'true'
     ? ''
     : import.meta.env.VITE_API_URL;
+
+// Token刷新相关状态
+let isRefreshingToken = false;
+let pendingRequests = [];
+
+/**
+ * 将等待中的请求加入队列
+ * 刷新成功后统一用新Token重新发起
+ * @param {Function} resolver - Promise resolve函数，用于传递新token
+ */
+function subscribeTokenRefresh(resolver) {
+  pendingRequests.push(resolver);
+}
+
+/**
+ * Token刷新完成后，重发所有等待中的请求
+ * @param {string} newToken - 新的access token
+ */
+function onTokenRefreshed(newToken) {
+  pendingRequests.forEach(resolver => resolver(newToken));
+  pendingRequests = [];
+}
+
+/**
+ * Token刷新失败，拒绝所有等待中的请求
+ */
+function rejectPendingRequests() {
+  pendingRequests.forEach(resolver => resolver(null));
+  pendingRequests = [];
+}
 
 // 数据处理，方便区分多种处理方式
 const transform = {
@@ -117,16 +187,88 @@ const transform = {
     return config;
   },
 
-  // 请求拦截器处理
-  requestInterceptors: (config, options) => {
+  // 请求拦截器处理 - 自动检测并刷新Token
+  requestInterceptors: async (config, options) => {
     const userStore = useUserStore();
     const token = userStore.token;
 
-    if (token && config?.requestOptions?.withToken !== false) {
+    // 如果不需要携带Token，直接返回
+    if (config?.requestOptions?.withToken === false) {
+      return config;
+    }
+
+    // 如果没有Token，直接返回
+    if (!token) {
+      return config;
+    }
+
+    // 检查是否是刷新Token请求
+    const isRefreshRequest = config.url?.includes('/auth/refresh');
+
+    // 如果正在刷新Token，将请求加入等待队列
+    if (isRefreshingToken) {
+      return new Promise((resolve, reject) => {
+        subscribeTokenRefresh((newToken) => {
+          if (newToken) {
+            // 刷新成功，使用新Token
+            config.headers.Authorization = options.authenticationScheme
+              ? `${options.authenticationScheme}${newToken}`
+              : newToken;
+            resolve(config);
+          } else {
+            // 刷新失败，拒绝了请求
+            reject(new Error('Token刷新失败，请重新登录'));
+          }
+        });
+      });
+    }
+
+    // 检查Token是否即将过期（排除refresh接口本身）
+    if (!isRefreshRequest && isTokenExpiringSoon(token)) {
+      console.log('Token即将过期，发起刷新请求...');
+
+      // 标记正在刷新
+      isRefreshingToken = true;
+
+      try {
+        // 调用刷新Token方法
+        const success = await userStore.refreshAccessToken();
+
+        if (success && userStore.token) {
+          // 刷新成功，更新当前请求头
+          config.headers.Authorization = options.authenticationScheme
+            ? `${options.authenticationScheme}${userStore.token}`
+            : userStore.token;
+
+          // 通知所有等待的请求
+          onTokenRefreshed(userStore.token);
+        } else {
+          // 刷新失败，拒绝所有等待的请求
+          console.error('Token刷新返回失败');
+          rejectPendingRequests();
+          // 跳转到登录页
+          await userStore.logout();
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error('Token刷新失败:', error);
+        // 刷新失败，拒绝所有等待的请求
+        rejectPendingRequests();
+        // 清除状态并跳转登录页
+        await userStore.logout();
+        router.push('/login');
+        // 抛出错误，中止当前请求
+        return Promise.reject(error);
+      } finally {
+        isRefreshingToken = false;
+      }
+    } else {
+      // Token未过期，直接使用
       config.headers.Authorization = options.authenticationScheme
         ? `${options.authenticationScheme}${token}`
         : token;
     }
+
     return config;
   },
 
@@ -162,6 +304,23 @@ const transform = {
   // 响应错误处理
   responseInterceptorsCatch: (error, instance) => {
     const { config, response } = error;
+
+    // 处理 429 限流状态码
+    if (response?.status === 429) {
+      const retryAfter = response?.headers?.['retry-after'] || response?.data?.retryAfter || 60;
+      const retryMsg = `请求过于频繁，请等待 ${retryAfter} 秒后再试`;
+
+      Dialog.confirm({
+        title: '操作过于频繁',
+        content: retryMsg,
+        confirmBtn: '我知道了',
+        zIndex: 90000,
+        overlayProps: {
+          zIndex: 89050,
+        },
+      });
+      return Promise.reject(error);
+    }
 
     // 处理 401 未授权
     if (response?.status === 401 || error.code === 401) {
