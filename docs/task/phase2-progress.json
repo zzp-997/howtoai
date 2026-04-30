@@ -1,0 +1,160 @@
+{
+  "version": "2.0",
+  "project": "极智协同二期迭代",
+  "prd": "docs/task/二期迭代PRD.md",
+  "design": "docs/plans/2026-05-01-二期迭代-design.md",
+  "tasks": "docs/task/phase2-tasks.md",
+  "currentPhase": 1,
+  "currentStage": "安全加固",
+  "status": "pending",
+  "progress": 0,
+  "lastUpdate": "2026-04-30T12:00:00",
+  "startTime": null,
+  "phases": [
+    {
+      "id": 1,
+      "name": "安全加固",
+      "status": "pending",
+      "progress": 0,
+      "totalTasks": 22,
+      "completedTasks": 0
+    },
+    {
+      "id": 2,
+      "name": "审批增强+意见反馈",
+      "status": "pending",
+      "progress": 0,
+      "totalTasks": 29,
+      "completedTasks": 0
+    },
+    {
+      "id": 3,
+      "name": "数据可视化+知识库+会议智能调度",
+      "status": "pending",
+      "progress": 0,
+      "totalTasks": 26,
+      "completedTasks": 0
+    },
+    {
+      "id": 4,
+      "name": "任务协作",
+      "status": "pending",
+      "progress": 0,
+      "totalTasks": 24,
+      "completedTasks": 0
+    },
+    {
+      "id": 5,
+      "name": "全量回归",
+      "status": "pending",
+      "progress": 0,
+      "totalTasks": 4,
+      "completedTasks": 0
+    }
+  ],
+  "agents": {
+    "product-manager": {
+      "name": "产品经理",
+      "status": "idle",
+      "currentTask": null,
+      "completedTasks": []
+    },
+    "ui-designer": {
+      "name": "UI设计师",
+      "status": "idle",
+      "currentTask": null,
+      "completedTasks": []
+    },
+    "frontend-developer": {
+      "name": "前端工程师",
+      "status": "idle",
+      "currentTask": null,
+      "completedTasks": []
+    },
+    "backend-architect": {
+      "name": "后端工程师",
+      "status": "idle",
+      "currentTask": null,
+      "completedTasks": []
+    },
+    "software-architect": {
+      "name": "架构师",
+      "status": "idle",
+      "currentTask": null,
+      "completedTasks": []
+    },
+    "database-optimizer": {
+      "name": "数据库专家",
+      "status": "idle",
+      "currentTask": null,
+      "completedTasks": []
+    },
+    "security-engineer": {
+      "name": "安全工程师",
+      "status": "idle",
+      "currentTask": null,
+      "completedTasks": []
+    },
+    "api-tester": {
+      "name": "测试工程师",
+      "status": "idle",
+      "currentTask": null,
+      "completedTasks": []
+    },
+    "performance-benchmarker": {
+      "name": "性能测试",
+      "status": "idle",
+      "currentTask": null,
+      "completedTasks": []
+    },
+    "senior-project-manager": {
+      "name": "Team Leader",
+      "status": "idle",
+      "currentTask": null,
+      "completedTasks": [],
+      "role": "orchestrator"
+    }
+  },
+  "taskDetails": {
+    "1.1.1": { "name": "安全需求细化文档", "agent": "product-manager", "dependencies": [], "status": "pending", "phase": 1 },
+    "1.1.2": { "name": "安全功能原型设计", "agent": "product-manager", "dependencies": ["1.1.1"], "status": "pending", "phase": 1 },
+    "1.1.3": { "name": "登录失败限制设计稿", "agent": "ui-designer", "dependencies": ["1.1.2"], "status": "pending", "phase": 1 },
+    "1.1.4": { "name": "密码强度指示设计稿", "agent": "ui-designer", "dependencies": ["1.1.2"], "status": "pending", "phase": 1 },
+    "1.2.1": { "name": "登录日志表设计", "agent": "database-optimizer", "dependencies": ["1.1.1"], "status": "pending", "phase": 1 },
+    "1.2.2": { "name": "操作日志表设计", "agent": "database-optimizer", "dependencies": ["1.1.1"], "status": "pending", "phase": 1 },
+    "1.2.3": { "name": "用户表扩展设计", "agent": "database-optimizer", "dependencies": ["1.1.1"], "status": "pending", "phase": 1 },
+    "1.2.4": { "name": "数据库变更SQL脚本", "agent": "database-optimizer", "dependencies": ["1.2.1", "1.2.2", "1.2.3"], "status": "pending", "phase": 1 },
+    "1.2.5": { "name": "安全方案技术评审", "agent": "software-architect", "dependencies": ["1.2.4"], "status": "pending", "phase": 1 },
+    "1.3.1": { "name": "登录失败计数逻辑", "agent": "backend-architect", "dependencies": ["1.2.5"], "status": "pending", "phase": 1 },
+    "1.3.2": { "name": "账户锁定与解锁逻辑", "agent": "backend-architect", "dependencies": ["1.3.1"], "status": "pending", "phase": 1 },
+    "1.3.3": { "name": "Flask-Limiter限流中间件", "agent": "backend-architect", "dependencies": ["1.2.5"], "status": "pending", "phase": 1 },
+    "1.3.4": { "name": "操作日志拦截器", "agent": "backend-architect", "dependencies": ["1.2.4"], "status": "pending", "phase": 1 },
+    "1.3.5": { "name": "Token刷新接口", "agent": "backend-architect", "dependencies": ["1.2.5"], "status": "pending", "phase": 1 },
+    "1.3.6": { "name": "密码强度校验逻辑", "agent": "backend-architect", "dependencies": ["1.2.5"], "status": "pending", "phase": 1 },
+    "1.3.7": { "name": "密码过期检测与提醒", "agent": "backend-architect", "dependencies": ["1.2.4"], "status": "pending", "phase": 1 },
+    "1.4.1": { "name": "登录页错误提示优化", "agent": "frontend-developer", "dependencies": ["1.1.3", "1.3.1"], "status": "pending", "phase": 1 },
+    "1.4.2": { "name": "账户锁定倒计时显示", "agent": "frontend-developer", "dependencies": ["1.4.1", "1.3.2"], "status": "pending", "phase": 1 },
+    "1.4.3": { "name": "429状态码处理", "agent": "frontend-developer", "dependencies": ["1.3.3"], "status": "pending", "phase": 1 },
+    "1.4.4": { "name": "Token自动刷新机制", "agent": "frontend-developer", "dependencies": ["1.3.5"], "status": "pending", "phase": 1 },
+    "1.4.5": { "name": "密码强度实时校验UI", "agent": "frontend-developer", "dependencies": ["1.1.4", "1.3.6"], "status": "pending", "phase": 1 },
+    "1.4.6": { "name": "密码过期提醒弹窗", "agent": "frontend-developer", "dependencies": ["1.3.7"], "status": "pending", "phase": 1 },
+    "1.5.1": { "name": "安全测试用例编写", "agent": "security-engineer", "dependencies": ["1.1.1"], "status": "pending", "phase": 1 },
+    "1.5.2": { "name": "登录保护功能测试", "agent": "api-tester", "dependencies": ["1.4.2", "1.5.1"], "status": "pending", "phase": 1 },
+    "1.5.3": { "name": "限流功能测试", "agent": "api-tester", "dependencies": ["1.4.3", "1.5.1"], "status": "pending", "phase": 1 },
+    "1.5.4": { "name": "操作日志验证", "agent": "api-tester", "dependencies": ["1.3.4", "1.5.1"], "status": "pending", "phase": 1 },
+    "1.5.5": { "name": "Token刷新测试", "agent": "api-tester", "dependencies": ["1.4.4", "1.5.1"], "status": "pending", "phase": 1 },
+    "1.5.6": { "name": "密码策略测试", "agent": "api-tester", "dependencies": ["1.4.6", "1.5.1"], "status": "pending", "phase": 1 },
+    "1.5.7": { "name": "第一阶段回归测试", "agent": "api-tester", "dependencies": ["1.5.2", "1.5.3", "1.5.4", "1.5.5", "1.5.6"], "status": "pending", "phase": 1 }
+  },
+  "artifacts": {
+    "baseDir": "docs/task/phase2-artifacts",
+    "phase1": [],
+    "phase2": [],
+    "phase3": [],
+    "phase4": [],
+    "final": []
+  },
+  "blocked": false,
+  "blockedReason": null,
+  "executionLog": []
+}
