@@ -1,6 +1,12 @@
 {
   "permissions": {
     "allow": [
+      "Bash(openspec new *)",
+      "Bash(openspec delete *)",
+      "Bash(openspec status *)",
+      "Bash(openspec instructions *)",
+      "WebFetch(domain:github.com)",
+      "Bash(openspec list *)"
     ]
   }
 }

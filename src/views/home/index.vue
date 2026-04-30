@@ -1,10 +1,10 @@
 <template>
   <Root :title="false" :show-back="false">
-    <div class="home-page min-h-screen bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0] relative overflow-hidden pb-safe">
-      <!-- 背景装饰 -->
-      <div class="absolute -top-[200px] -right-[150px] w-[500px] h-[500px] bg-gradient-to-br from-[#0052D9]/10 to-[#266FE8]/10 rounded-full blur-3xl animate-pulse-slow pointer-events-none z-0"></div>
-      <div class="absolute -bottom-[150px] -left-[100px] w-[400px] h-[400px] bg-gradient-to-br from-[#00A870]/10 to-[#2BA471]/10 rounded-full blur-3xl animate-pulse-slow animation-delay-2000 pointer-events-none z-0"></div>
-      <div class="absolute top-[40%] left-[50%] -translate-x-1/2 w-[300px] h-[300px] bg-gradient-to-br from-[#7B61FF]/5 to-[#9B8AFF]/5 rounded-full blur-3xl pointer-events-none z-0"></div>
+    <div class="home-page min-h-screen relative overflow-hidden pb-safe animated-bg">
+      <!-- 背景装饰 - 使用 blur-xl 减少GPU负担，移除脉冲动画 -->
+      <div class="absolute -top-[200px] -right-[150px] w-[500px] h-[500px] bg-gradient-to-br from-[#0052D9]/10 to-[#266FE8]/10 rounded-full blur-xl pointer-events-none z-0 will-change-transform"></div>
+      <div class="absolute -bottom-[150px] -left-[100px] w-[400px] h-[400px] bg-gradient-to-br from-[#00A870]/10 to-[#2BA471]/10 rounded-full blur-xl pointer-events-none z-0 will-change-transform"></div>
+      <div class="absolute top-[40%] left-[50%] -translate-x-1/2 w-[300px] h-[300px] bg-gradient-to-br from-[#7B61FF]/5 to-[#9B8AFF]/5 rounded-full blur-lg pointer-events-none z-0 will-change-transform"></div>
 
       <!-- 顶部欢迎区域 -->
       <div class="relative px-[32px] pt-[60px] mb-[24px]">
@@ -407,7 +407,7 @@
           <div
             v-for="item in menuList"
             :key="item.id"
-            class="menu-card relative bg-white rounded-[20px] p-[20px] shadow-lg shadow-slate-200/50 overflow-hidden active:scale-[0.97] transition-all cursor-pointer group border border-slate-100 hover:shadow-xl"
+            class="menu-card relative bg-white rounded-[20px] p-[20px] shadow-lg shadow-slate-200/50 overflow-hidden active:scale-[0.97] transition-all cursor-pointer group border border-slate-100"
             @click="handleMenuClick(item)"
           >
             <div class="absolute top-[-10px] right-[-10px] w-[80px] h-[80px] opacity-[0.03] transform translate-x-[10px] -translate-y-[10px]">
@@ -421,7 +421,7 @@
             </div>
             <div class="text-[24px] font-semibold text-[#1e293b] mb-[4px] relative z-10">{{ item.title }}</div>
             <div class="text-[20px] text-[#94a3b8] leading-[1.4] relative z-10">{{ item.desc }}</div>
-            <ChevronRightIcon class="absolute bottom-[16px] right-[12px] text-[20px] text-slate-300 group-hover:text-[#0052D9] group-hover:translate-x-1 transition-all" />
+            <ChevronRightIcon class="absolute bottom-[16px] right-[12px] text-[20px] text-slate-300 transition-all" />
           </div>
         </div>
       </div>
@@ -660,7 +660,16 @@ const loadAnnouncements = async () => {
       const important = all.filter(a => a.isTop)
       if (important.length > 0) {
         popupAnnouncements.value = important
-        showAnnouncementPopup.value = true
+        // 检查是否已在本会话中展示过公告
+        let hasShownAnnouncement = false
+        try {
+          hasShownAnnouncement = sessionStorage.getItem('announcement_shown') === 'true'
+        } catch (e) {
+          // sessionStorage 禁用时不做限制，每次都展示
+          console.warn('sessionStorage 不可用:', e)
+        }
+        // 仅在未展示时弹出
+        showAnnouncementPopup.value = !hasShownAnnouncement
       }
     } catch (error) {
       console.error('加载公告失败:', error)
@@ -867,6 +876,12 @@ const closeAnnouncementPopup = async () => {
       // 忽略错误
     }
   }
+  // 设置会话标记，表示已展示过公告
+  try {
+    sessionStorage.setItem('announcement_shown', 'true')
+  } catch (e) {
+    // sessionStorage 禁用时忽略
+  }
   showAnnouncementPopup.value = false
 }
 
@@ -878,6 +893,12 @@ const viewPopupAnnouncement = async (item) => {
     } catch (e) {
       // 忽略错误
     }
+  }
+  // 设置会话标记
+  try {
+    sessionStorage.setItem('announcement_shown', 'true')
+  } catch (e) {
+    // sessionStorage 禁用时忽略
   }
   showAnnouncementPopup.value = false
   router.push(`/user/announcement/${item.id}`)
@@ -957,18 +978,9 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 缓慢脉冲动画 */
-.animate-pulse-slow {
-  animation: pulse-slow 4s ease-in-out infinite;
-}
-
-.animation-delay-2000 {
-  animation-delay: 2s;
-}
-
-@keyframes pulse-slow {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.05); }
+/* 动画渐变背景 - 简化动画减少GPU负担 */
+.animated-bg {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
 }
 
 /* 微妙弹跳 */
@@ -1013,27 +1025,18 @@ onUnmounted(() => {
   transform: translateX(-20px);
 }
 
-/* 卡片悬停效果 */
-.menu-card:hover {
-  transform: translateY(-2px);
-}
-
 .todo-item:hover {
   background: linear-gradient(90deg, transparent 0%, rgba(0, 82, 217, 0.03) 100%);
 }
 
 /* 夜间模式适配 */
-[data-theme="dark"] .home-page {
-  background: linear-gradient(to bottom right, #1f2937, #1a1a1a, #111827);
+[data-theme="dark"] .animated-bg {
+  background: linear-gradient(135deg, #1f2937 0%, #16213e 50%, #0f172a 100%);
 }
 
 [data-theme="dark"] .menu-card {
   background: var(--bg-primary);
   border-color: var(--border-color);
-}
-
-[data-theme="dark"] .menu-card:hover {
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 [data-theme="dark"] .todo-list,

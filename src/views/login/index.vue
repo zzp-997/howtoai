@@ -99,7 +99,7 @@
           block
           size="large"
           :loading="loading"
-          class="login-btn h-[72px] text-[30px] font-medium rounded-[14px] !bg-gradient-to-br !from-[#0052D9] !to-[#266FE8] shadow-lg shadow-[#0052D9]/40 relative overflow-hidden mb-[18px]"
+          class="login-btn h-[72px] text-[30px] font-medium rounded-[14px] !bg-gradient-to-br !from-[#0052D9] !to-[#266FE8] shadow-lg shadow-[#0052D9]/40 relative mb-[18px]"
           @click="handleLogin"
         >
           <span class="relative z-10">登 录</span>
@@ -318,14 +318,47 @@ onUnmounted(() => {
   100% { transform: rotate(360deg); }
 }
 
-/* 登录按钮样式 */
+/* 登录按钮样式 - 保持闪光效果同时显示loading */
 .login-btn {
-  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* loading 时隐藏闪光效果 */
+.login-btn.t-button--loading::before {
+  display: none !important;
 }
 
 .login-btn :deep(.t-button__content) {
-  overflow: hidden;
   border-radius: 14px;
+}
+
+/* 完全替换loading图标样式 - 显示完整旋转圆圈 */
+.login-btn :deep(.t-button__loading) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.login-btn :deep(.t-loading__spinner) {
+  /* 使用自定义完整圆圈 */
+  display: inline-block !important;
+  width: 24px !important;
+  height: 24px !important;
+  border: 3px solid rgba(255, 255, 255, 0.3) !important;
+  border-top-color: white !important;
+  border-radius: 50% !important;
+  animation: custom-spin 0.8s linear infinite !important;
+  box-sizing: border-box !important;
+}
+
+/* 隐藏原始svg */
+.login-btn :deep(.t-loading__spinner svg) {
+  display: none !important;
+}
+
+@keyframes custom-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* 登录按钮特效 */
@@ -344,28 +377,6 @@ onUnmounted(() => {
 @keyframes btn-shine {
   0% { left: -100%; }
   50%, 100% { left: 100%; }
-}
-
-/* 登录按钮 loading 旋转图标完整显示 */
-.login-btn :deep(.t-button__loading) {
-  overflow: visible !important;
-}
-
-.login-btn :deep(.t-loading__spinner) {
-  width: 28px !important;
-  height: 28px !important;
-  overflow: visible !important;
-}
-
-.login-btn :deep(.t-loading__spinner svg) {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.login-btn :deep(.t-loading) {
-  display: inline-flex !important;
-  align-items: center !important;
-  overflow: visible !important;
 }
 
 /* 输入框聚焦效果 */

@@ -65,11 +65,11 @@
 
     <!-- 开始时间选择弹窗 -->
     <t-popup v-model="showStartPicker" placement="bottom" round>
-      <t-picker :columns="timeColumns" title="选择开始时间" @confirm="handleStartConfirm" @cancel="showStartPicker = false" />
+      <t-picker :columns="startTimeColumns" title="选择开始时间" @confirm="handleStartConfirm" @cancel="showStartPicker = false" />
     </t-popup>
     <!-- 结束时间选择弹窗 -->
     <t-popup v-model="showEndPicker" placement="bottom" round>
-      <t-picker :columns="timeColumns" title="选择结束时间" @confirm="handleEndConfirm" @cancel="showEndPicker = false" />
+      <t-picker :columns="endTimeColumns" title="选择结束时间" @confirm="handleEndConfirm" @cancel="showEndPicker = false" />
     </t-popup>
   </Root>
 </template>
@@ -95,12 +95,65 @@ const loading = ref(false)
 const showStartPicker = ref(false)
 const showEndPicker = ref(false)
 
-const timeColumns = computed(() => {
+// 开始时间选项 - 禁用已过去的时间（如果是今天）
+const startTimeColumns = computed(() => {
   const times = []
+  const today = dayjs().format('YYYY-MM-DD')
+  const isToday = formData.date === today
+  // 获取当前时间的分钟数（用于精确比较）
+  const currentMinutes = dayjs().hour() * 60 + dayjs().minute()
+
   for (let h = 8; h <= 20; h++) {
-    times.push(`${h.toString().padStart(2, '0')}:00`, `${h.toString().padStart(2, '0')}:30`)
+    // 整点时间
+    const hourMinutes = h * 60
+    times.push({
+      label: `${h.toString().padStart(2, '0')}:00`,
+      value: `${h.toString().padStart(2, '0')}:00`,
+      // 如果是今天且时间已过（当前时间超过该时间点），则禁用
+      disabled: isToday && currentMinutes >= hourMinutes
+    })
+    // 半点时间
+    const halfMinutes = h * 60 + 30
+    times.push({
+      label: `${h.toString().padStart(2, '0')}:30`,
+      value: `${h.toString().padStart(2, '0')}:30`,
+      disabled: isToday && currentMinutes >= halfMinutes
+    })
   }
-  return [times.map(t => ({ label: t, value: t }))]
+
+  return [times]
+})
+
+// 结束时间选项 - 禁用开始时间之前的时间
+const endTimeColumns = computed(() => {
+  const times = []
+  const today = dayjs().format('YYYY-MM-DD')
+  const isToday = formData.date === today
+  const currentMinutes = dayjs().hour() * 60 + dayjs().minute()
+  // 获取开始时间的分钟数
+  const startMinutes = formData.startTime
+    ? parseInt(formData.startTime.split(':')[0]) * 60 + parseInt(formData.startTime.split(':')[1])
+    : 0
+
+  for (let h = 8; h <= 20; h++) {
+    const hourMinutes = h * 60
+    const halfMinutes = h * 60 + 30
+
+    // 整点时间
+    times.push({
+      label: `${h.toString().padStart(2, '0')}:00`,
+      value: `${h.toString().padStart(2, '0')}:00`,
+      disabled: (isToday && currentMinutes >= hourMinutes) || (formData.startTime && hourMinutes <= startMinutes)
+    })
+    // 半点时间
+    times.push({
+      label: `${h.toString().padStart(2, '0')}:30`,
+      value: `${h.toString().padStart(2, '0')}:30`,
+      disabled: (isToday && currentMinutes >= halfMinutes) || (formData.startTime && halfMinutes <= startMinutes)
+    })
+  }
+
+  return [times]
 })
 
 const calculateDuration = () => {
@@ -110,7 +163,14 @@ const calculateDuration = () => {
   return (eh * 60 + em) - (sh * 60 + sm)
 }
 
-const handleStartConfirm = (value) => { formData.startTime = value.join(''); showStartPicker.value = false }
+const handleStartConfirm = (value) => {
+  formData.startTime = value.join('')
+  showStartPicker.value = false
+  // 如果结束时间比新选择的开始时间早或相等，自动清空结束时间
+  if (formData.endTime && formData.endTime <= formData.startTime) {
+    formData.endTime = ''
+  }
+}
 const handleEndConfirm = (value) => { formData.endTime = value.join(''); showEndPicker.value = false }
 
 const handleSubmit = async () => {

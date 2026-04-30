@@ -65,6 +65,13 @@ export const useUserStore = defineStore("user", {
         this.role = user.role;
         this.isLoggedIn = true;
 
+        // 登录成功时清理公告展示标记，确保每次登录都会展示重要公告
+        try {
+          sessionStorage.removeItem('announcement_shown');
+        } catch (e) {
+          console.warn('清理公告标记失败:', e);
+        }
+
         return user;
       } catch (error) {
         throw error;
