@@ -4,52 +4,57 @@
       <div class="flex p-[24px] gap-[24px]">
         <!-- 左侧：智能推荐 -->
         <div class="flex-1">
-          <t-card title="智能推荐会议室" class="shadow-sm mb-[24px]">
-            <template #actions>
-              <t-button variant="text" @click="handleRefresh">
+          <!-- 卡片容器 -->
+          <div class="bg-white rounded-[16px] shadow-sm mb-[24px] overflow-hidden">
+            <!-- 卡片标题 -->
+            <div class="flex items-center justify-between px-[24px] py-[16px] border-b border-[#eee]">
+              <span class="text-[28px] font-medium text-[#333]">智能推荐会议室</span>
+              <t-button variant="text" size="small" @click="handleRefresh">
                 <template #icon><RefreshIcon /></template>
                 重新推荐
               </t-button>
-            </template>
+            </div>
 
             <!-- 推荐条件 -->
-            <div class="mb-[24px]">
+            <div class="p-[24px]">
               <div class="grid grid-cols-2 gap-[16px]">
                 <div>
                   <div class="text-[24px] text-[#666] mb-[8px]">参会人数</div>
-                  <t-input-number
+                  <t-stepper
                     v-model="form.attendees"
                     :min="1"
                     :max="50"
-                    class="w-full"
+                    theme="filled"
                   />
                 </div>
                 <div>
                   <div class="text-[24px] text-[#666] mb-[8px]">会议时长</div>
-                  <t-select v-model="form.duration" class="w-full">
-                    <t-option :value="30" label="30分钟" />
-                    <t-option :value="60" label="1小时" />
-                    <t-option :value="90" label="1.5小时" />
-                    <t-option :value="120" label="2小时" />
-                  </t-select>
+                  <div
+                    class="flex items-center justify-between p-[12px] bg-[#f5f7fa] rounded-[8px] cursor-pointer"
+                    @click="showDurationPicker = true"
+                  >
+                    <span class="text-[24px]">{{ durationOptions.find(o => o.value === form.duration)?.label }}</span>
+                    <ChevronDownIcon class="text-[32px] text-[#999]" />
+                  </div>
                 </div>
                 <div>
                   <div class="text-[24px] text-[#666] mb-[8px]">会议日期</div>
-                  <t-date-picker
-                    v-model="form.date"
-                    enable-time-picker
-                    class="w-full"
-                    :disable-date="disabledDate"
-                  />
+                  <div
+                    class="flex items-center justify-between p-[12px] bg-[#f5f7fa] rounded-[8px] cursor-pointer"
+                    @click="showDatePicker = true"
+                  >
+                    <span class="text-[24px]">{{ formatDate(form.date) }}</span>
+                    <CalendarIcon class="text-[32px] text-[#999]" />
+                  </div>
                 </div>
                 <div>
                   <div class="text-[24px] text-[#666] mb-[8px]">会议设备</div>
-                  <div class="flex flex-wrap gap-[12px]">
-                    <t-checkbox v-model="form.equipment" value="projector">投影仪</t-checkbox>
-                    <t-checkbox v-model="form.equipment" value="whiteboard">白板</t-checkbox>
-                    <t-checkbox v-model="form.equipment" value="video_conference">视频会议</t-checkbox>
-                    <t-checkbox v-model="form.equipment" value="microphone">麦克风</t-checkbox>
-                  </div>
+                  <t-checkbox-group v-model="form.equipment" class="flex flex-wrap gap-[12px]">
+                    <t-checkbox value="projector">投影仪</t-checkbox>
+                    <t-checkbox value="whiteboard">白板</t-checkbox>
+                    <t-checkbox value="video_conference">视频会议</t-checkbox>
+                    <t-checkbox value="microphone">麦克风</t-checkbox>
+                  </t-checkbox-group>
                 </div>
               </div>
               <t-button
@@ -63,7 +68,7 @@
             </div>
 
             <!-- 推荐结果 -->
-            <div v-if="recommendations.length > 0" class="flex flex-col gap-[12px]">
+            <div v-if="recommendations.length > 0" class="flex flex-col gap-[12px] px-[24px] pb-[24px]">
               <div
                 v-for="(item, index) in recommendations"
                 :key="index"
@@ -106,55 +111,83 @@
                 <div class="text-[26px] text-[#999]">请输入推荐条件开始推荐</div>
               </div>
             </div>
-          </t-card>
+          </div>
         </div>
 
         <!-- 右侧：可用时段 -->
         <div class="w-[360px]">
-          <t-card title="可用时段" class="shadow-sm mb-[24px]">
-            <div v-if="selectedRoom !== null" class="grid grid-cols-2 gap-[8px]">
-              <div
-                v-for="slot in recommendations[selectedRoom]?.availableSlots || []"
-                :key="slot.start"
-                :class="[
-                  'flex flex-col items-center justify-center p-[16px] rounded-[12px] cursor-pointer transition-all',
-                  slot.available
-                    ? 'bg-[#ECFDF5] text-[#10B981]'
-                    : 'bg-[#f5f7fa] text-[#999] cursor-not-allowed'
-                ]"
-                @click="slot.available && handleSelectTime(slot)"
-              >
-                <span class="text-[24px] font-medium">{{ slot.start }}-{{ slot.end }}</span>
-                <span class="text-[20px]">{{ slot.available ? '可预约' : '已占用' }}</span>
-              </div>
+          <!-- 可用时段卡片 -->
+          <div class="bg-white rounded-[16px] shadow-sm mb-[24px] overflow-hidden">
+            <div class="px-[24px] py-[16px] border-b border-[#eee]">
+              <span class="text-[28px] font-medium text-[#333]">可用时段</span>
             </div>
-            <div v-else class="flex items-center justify-center py-[60px]">
-              <div class="text-center text-[#999]">
-                <TimeIcon class="text-[48px] mb-[16px]" />
-                <div class="text-[24px]">请先选择会议室</div>
+            <div class="p-[24px]">
+              <div v-if="selectedRoom !== null" class="grid grid-cols-2 gap-[8px]">
+                <div
+                  v-for="slot in recommendations[selectedRoom]?.availableSlots || []"
+                  :key="slot.start"
+                  :class="[
+                    'flex flex-col items-center justify-center p-[16px] rounded-[12px] cursor-pointer transition-all',
+                    slot.available
+                      ? 'bg-[#ECFDF5] text-[#10B981]'
+                      : 'bg-[#f5f7fa] text-[#999] cursor-not-allowed'
+                  ]"
+                  @click="slot.available && handleSelectTime(slot)"
+                >
+                  <span class="text-[24px] font-medium">{{ slot.start }}-{{ slot.end }}</span>
+                  <span class="text-[20px]">{{ slot.available ? '可预约' : '已占用' }}</span>
+                </div>
               </div>
-            </div>
-          </t-card>
-
-          <!-- 今日会议安排 -->
-          <t-card title="今日会议安排" class="shadow-sm">
-            <div class="flex flex-col gap-[12px]">
-              <div
-                v-for="meeting in todayMeetings"
-                :key="meeting.id"
-                class="flex gap-[16px] p-[16px] bg-[#f5f7fa] rounded-[12px] border-l-[4px] border-[#0052D9]"
-              >
-                <div class="text-[24px] font-medium text-[#0052D9] min-w-[60px]">{{ meeting.time }}</div>
-                <div>
-                  <div class="text-[24px] font-medium text-[#333]">{{ meeting.title }}</div>
-                  <div class="text-[22px] text-[#666]">{{ meeting.room }}</div>
+              <div v-else class="flex items-center justify-center py-[60px]">
+                <div class="text-center text-[#999]">
+                  <TimeIcon class="text-[48px] mb-[16px]" />
+                  <div class="text-[24px]">请先选择会议室</div>
                 </div>
               </div>
             </div>
-          </t-card>
+          </div>
+
+          <!-- 今日会议安排卡片 -->
+          <div class="bg-white rounded-[16px] shadow-sm overflow-hidden">
+            <div class="px-[24px] py-[16px] border-b border-[#eee]">
+              <span class="text-[28px] font-medium text-[#333]">今日会议安排</span>
+            </div>
+            <div class="p-[24px]">
+              <div class="flex flex-col gap-[12px]">
+                <div
+                  v-for="meeting in todayMeetings"
+                  :key="meeting.id"
+                  class="flex gap-[16px] p-[16px] bg-[#f5f7fa] rounded-[12px] border-l-[4px] border-[#0052D9]"
+                >
+                  <div class="text-[24px] font-medium text-[#0052D9] min-w-[60px]">{{ meeting.time }}</div>
+                  <div>
+                    <div class="text-[24px] font-medium text-[#333]">{{ meeting.title }}</div>
+                    <div class="text-[22px] text-[#666]">{{ meeting.room }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- 时长选择器弹窗 -->
+    <t-picker
+      v-model:visible="showDurationPicker"
+      :columns="[durationOptions]"
+      :default-value="[form.duration]"
+      @confirm="handleDurationConfirm"
+    />
+
+    <!-- 日期选择器弹窗 -->
+    <t-date-time-picker
+      v-model:visible="showDatePicker"
+      v-model="form.date"
+      mode="date"
+      title="选择会议日期"
+      @confirm="handleDateConfirm"
+    />
   </Root>
 </template>
 
@@ -163,7 +196,9 @@ import { ref, onMounted } from 'vue';
 import {
   RefreshIcon,
   LightbulbIcon,
-  TimeIcon
+  TimeIcon,
+  ChevronDownIcon,
+  CalendarIcon
 } from 'tdesign-icons-vue-next';
 import Root from '@/components/root/index.vue';
 import {
@@ -172,6 +207,14 @@ import {
   getMeetingRooms
 } from '@/api/schedule';
 
+// 时长选项
+const durationOptions = [
+  { label: '30分钟', value: 30 },
+  { label: '1小时', value: 60 },
+  { label: '1.5小时', value: 90 },
+  { label: '2小时', value: 120 }
+];
+
 // 表单数据
 const form = ref({
   attendees: 5,
@@ -179,6 +222,9 @@ const form = ref({
   date: new Date(),
   equipment: []
 });
+
+const showDurationPicker = ref(false);
+const showDatePicker = ref(false);
 
 const recommending = ref(false);
 const recommendations = ref([]);
@@ -192,9 +238,21 @@ const todayMeetings = ref([
   { id: 3, time: '16:00', title: '周报会议', room: '第一会议室' }
 ]);
 
+// 格式化日期
+const formatDate = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 // 方法
-const disabledDate = (date) => {
-  return date < new Date();
+const handleDurationConfirm = (value) => {
+  form.value.duration = value[0];
+  showDurationPicker.value = false;
+};
+
+const handleDateConfirm = () => {
+  showDatePicker.value = false;
 };
 
 const handleRecommend = async () => {

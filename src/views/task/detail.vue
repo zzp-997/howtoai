@@ -67,23 +67,25 @@
             <!-- 状态选择 -->
             <div class="flex items-center gap-[12px]">
               <span class="text-[24px] text-[#999]">状态</span>
-              <t-dropdown :options="statusOptions" @change="handleStatusChange">
-                <div :class="['px-[20px] py-[10px] rounded-[12px] text-[24px] flex items-center gap-[8px]', getStatusBgClass(task.status)]">
-                  <span :class="getStatusTextClass(task.status)">{{ getStatusLabel(task.status) }}</span>
-                  <ChevronDownIcon class="text-[20px]" />
-                </div>
-              </t-dropdown>
+              <div
+                :class="['px-[20px] py-[10px] rounded-[12px] text-[24px] flex items-center gap-[8px]', getStatusBgClass(task.status)]"
+                @click="showStatusPicker = true"
+              >
+                <span :class="getStatusTextClass(task.status)">{{ getStatusLabel(task.status) }}</span>
+                <ChevronDownIcon class="text-[20px]" />
+              </div>
             </div>
 
             <!-- 优先级选择 -->
             <div class="flex items-center gap-[12px]">
               <span class="text-[24px] text-[#999]">优先级</span>
-              <t-dropdown :options="priorityOptions" @change="handlePriorityChange">
-                <div :class="['px-[20px] py-[10px] rounded-[12px] text-[24px] flex items-center gap-[8px]', getPriorityBgClass(task.priority)]">
-                  <span :class="getPriorityTextClass(task.priority)">{{ getPriorityLabel(task.priority) }}</span>
-                  <ChevronDownIcon class="text-[20px]" />
-                </div>
-              </t-dropdown>
+              <div
+                :class="['px-[20px] py-[10px] rounded-[12px] text-[24px] flex items-center gap-[8px]', getPriorityBgClass(task.priority)]"
+                @click="showPriorityPicker = true"
+              >
+                <span :class="getPriorityTextClass(task.priority)">{{ getPriorityLabel(task.priority) }}</span>
+                <ChevronDownIcon class="text-[20px]" />
+              </div>
             </div>
 
             <!-- 截止日期 -->
@@ -341,6 +343,20 @@
         />
       </t-popup>
 
+      <!-- 状态选择弹窗 -->
+      <t-action-sheet
+        v-model:visible="showStatusPicker"
+        :items="statusOptions.map(s => ({ label: s.label, value: s.value }))"
+        @selected="handleStatusSelect"
+      />
+
+      <!-- 优先级选择弹窗 -->
+      <t-action-sheet
+        v-model:visible="showPriorityPicker"
+        :items="priorityOptions.map(p => ({ label: p.label, value: p.value }))"
+        @selected="handlePrioritySelect"
+      />
+
       <!-- 添加子任务弹窗 -->
       <t-popup v-model="showAddSubtask" placement="bottom" round>
         <div class="bg-white rounded-t-[32px] p-[32px] pb-[48px]">
@@ -468,6 +484,8 @@ const showDatePicker = ref(false)
 const showAddSubtask = ref(false)
 const showAssigneePicker = ref(false)
 const showWatcherPicker = ref(false)
+const showStatusPicker = ref(false)
+const showPriorityPicker = ref(false)
 
 // 新增数据
 const newComment = ref('')
@@ -719,6 +737,11 @@ const handleStatusChange = async (status) => {
   }
 }
 
+// 状态选择（ActionSheet）
+const handleStatusSelect = (selected) => {
+  handleStatusChange(selected.value)
+}
+
 // 优先级变更
 const handlePriorityChange = async (priority) => {
   try {
@@ -729,6 +752,11 @@ const handlePriorityChange = async (priority) => {
   } catch (error) {
     showErrorDialog('更新失败')
   }
+}
+
+// 优先级选择（ActionSheet）
+const handlePrioritySelect = (selected) => {
+  handlePriorityChange(selected.value)
 }
 
 // 日期确认

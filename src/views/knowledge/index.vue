@@ -67,22 +67,30 @@
         <div class="flex-1 bg-white rounded-[16px] p-[24px] shadow-sm">
           <!-- 筛选栏 -->
           <div class="flex items-center justify-between mb-[24px]">
-            <t-radio-group v-model="filterType" variant="default-filled" @change="handleFilterChange">
-              <t-radio-button value="all">全部</t-radio-button>
-              <t-radio-button value="my">我的</t-radio-button>
-              <t-radio-button value="published">已发布</t-radio-button>
-              <t-radio-button value="draft">草稿</t-radio-button>
-            </t-radio-group>
-            <t-select
-              v-model="sortType"
-              placeholder="排序方式"
-              class="w-[200px]"
-              @change="handleSortChange"
-            >
-              <t-option value="latest" label="最新" />
-              <t-option value="hot" label="最热" />
-              <t-option value="views" label="阅读量" />
-            </t-select>
+            <div class="flex gap-[8px]">
+              <t-button
+                v-for="item in filterOptions"
+                :key="item.value"
+                :theme="filterType === item.value ? 'primary' : 'default'"
+                variant="base"
+                size="small"
+                @click="filterType = item.value; handleFilterChange()"
+              >
+                {{ item.label }}
+              </t-button>
+            </div>
+            <div class="flex gap-[8px]">
+              <t-button
+                v-for="item in sortOptions"
+                :key="item.value"
+                :theme="sortType === item.value ? 'primary' : 'default'"
+                variant="base"
+                size="small"
+                @click="sortType = item.value; handleSortChange()"
+              >
+                {{ item.label }}
+              </t-button>
+            </div>
           </div>
 
           <!-- 加载中 -->
@@ -132,15 +140,9 @@
             </div>
           </div>
 
-          <!-- 分页 -->
-          <div v-if="total > pageSize" class="flex justify-end mt-[24px]">
-            <t-pagination
-              v-model="currentPage"
-              v-model:page-size="pageSize"
-              :total="total"
-              show-page-number
-              @change="handlePageChange"
-            />
+          <!-- 加载更多 -->
+          <div v-if="articles.length < total" class="flex justify-center mt-[24px]">
+            <t-button variant="outline" @click="loadMore">加载更多</t-button>
           </div>
         </div>
       </div>
@@ -173,6 +175,19 @@ const loading = ref(false);
 const searchKeyword = ref('');
 const filterType = ref('all');
 const sortType = ref('latest');
+
+const filterOptions = [
+  { label: '全部', value: 'all' },
+  { label: '我的', value: 'my' },
+  { label: '已发布', value: 'published' },
+  { label: '草稿', value: 'draft' },
+];
+
+const sortOptions = [
+  { label: '最新', value: 'latest' },
+  { label: '最热', value: 'hot' },
+  { label: '阅读量', value: 'views' },
+];
 
 // 分类相关
 const categories = ref([]);
@@ -215,12 +230,12 @@ const handleSortChange = async () => {
 };
 
 const handleArticleClick = (article) => {
-  router.push(`/user/knowledge/${article.id}`);
+  router.push('/user/knowledge/' + article.id);
 };
 
-const handlePageChange = async (page) => {
-  currentPage.value = page.current || page;
-  await loadArticles();
+const loadMore = async () => {
+  currentPage.value += 1;
+  await loadArticles(true);
 };
 
 const loadCategories = async () => {
@@ -259,7 +274,7 @@ const loadCategories = async () => {
   }
 };
 
-const loadArticles = async () => {
+const loadArticles = async (append = false) => {
   loading.value = true;
   try {
     const params = {
@@ -279,7 +294,12 @@ const loadArticles = async () => {
     }
 
     if (res.data) {
-      articles.value = res.data.list || res.data;
+      const newArticles = res.data.list || res.data;
+      if (append) {
+        articles.value = [...articles.value, ...newArticles];
+      } else {
+        articles.value = newArticles;
+      }
       total.value = res.data.total || articles.value.length;
     }
   } catch (error) {

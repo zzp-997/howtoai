@@ -4,13 +4,18 @@
       <!-- 顶部筛选器 -->
       <div class="bg-white p-[24px] sticky top-0 z-10">
         <div class="flex items-center justify-between">
-          <t-radio-group v-model="timeType" variant="default-filled" @change="handleTimeChange">
-            <t-radio-button value="today">今日</t-radio-button>
-            <t-radio-button value="week">本周</t-radio-button>
-            <t-radio-button value="month">本月</t-radio-button>
-            <t-radio-button value="quarter">本季度</t-radio-button>
-            <t-radio-button value="year">本年</t-radio-button>
-          </t-radio-group>
+          <div class="flex gap-[8px]">
+            <t-button
+              v-for="item in timeOptions"
+              :key="item.value"
+              :theme="timeType === item.value ? 'primary' : 'default'"
+              variant="base"
+              size="small"
+              @click="timeType = item.value; handleTimeChange()"
+            >
+              {{ item.label }}
+            </t-button>
+          </div>
           <t-button theme="primary" @click="handleExport">
             <template #icon><DownloadIcon /></template>
             导出报表
@@ -67,7 +72,7 @@
 
           <div class="bg-white rounded-[16px] p-[24px] flex items-center shadow-sm">
             <div class="w-[64px] h-[64px] rounded-[16px] bg-[#8B5CF6] flex items-center justify-center mr-[16px]">
-              <MoneyCircleIcon class="text-[32px] text-white" />
+              <MoneyIcon class="text-[32px] text-white" />
             </div>
             <div class="flex-1">
               <div class="text-[36px] font-bold text-[#1E293B]">{{ stats.monthlyExpenses }}万</div>
@@ -81,26 +86,29 @@
 
         <!-- 会议概览 -->
         <div class="grid grid-cols-2 gap-[16px] mb-[24px]">
-          <t-card title="会议室使用率TOP5" class="shadow-sm">
+          <div class="bg-white rounded-[16px] p-[24px] shadow-sm">
+            <div class="text-[26px] font-medium text-[#333] mb-[16px]">会议室使用率TOP5</div>
             <div class="h-[280px] flex items-center justify-center text-[#999]">
               <div class="text-center">
                 <ChartPieIcon class="text-[48px] mb-[16px]" />
                 <div class="text-[24px]">图表区域</div>
               </div>
             </div>
-          </t-card>
-          <t-card title="考勤趋势" class="shadow-sm">
+          </div>
+          <div class="bg-white rounded-[16px] p-[24px] shadow-sm">
+            <div class="text-[26px] font-medium text-[#333] mb-[16px]">考勤趋势</div>
             <div class="h-[280px] flex items-center justify-center text-[#999]">
               <div class="text-center">
                 <ChartLineIcon class="text-[48px] mb-[16px]" />
                 <div class="text-[24px]">图表区域</div>
               </div>
             </div>
-          </t-card>
+          </div>
         </div>
 
         <!-- 审批概览 -->
-        <t-card title="审批概览" class="shadow-sm">
+        <div class="bg-white rounded-[16px] p-[24px] shadow-sm">
+          <div class="text-[26px] font-medium text-[#333] mb-[16px]">审批概览</div>
           <div class="grid grid-cols-4 gap-[16px]">
             <div class="bg-[#FFFBEB] rounded-[12px] p-[24px] text-center">
               <div class="text-[40px] font-bold text-[#F59E0B]">{{ approvalStats.pending }}</div>
@@ -119,7 +127,7 @@
               <div class="text-[24px] text-[#64748B]">催办提醒</div>
             </div>
           </div>
-        </t-card>
+        </div>
       </div>
     </div>
   </Root>
@@ -132,7 +140,7 @@ import {
   CalendarIcon,
   TimeFilledIcon,
   FileIcon,
-  MoneyCircleIcon,
+  MoneyIcon,
   ChartPieIcon,
   ChartLineIcon
 } from 'tdesign-icons-vue-next';
@@ -142,6 +150,14 @@ import { getDashboardStats, getMeetingStats, getAttendanceStats, getApprovalStat
 // 响应式数据
 const loading = ref(false);
 const timeType = ref('today');
+
+const timeOptions = [
+  { label: '今日', value: 'today' },
+  { label: '本周', value: 'week' },
+  { label: '本月', value: 'month' },
+  { label: '本季度', value: 'quarter' },
+  { label: '本年', value: 'year' },
+];
 
 const stats = ref({
   todayMeetings: 0,
