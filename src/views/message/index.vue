@@ -265,7 +265,7 @@ const loadMessages = async (isRefresh = false) => {
   try {
     const params = {
       page: page.value,
-      size: pageSize
+      page_size: pageSize
     }
 
     // 根据当前分类筛选

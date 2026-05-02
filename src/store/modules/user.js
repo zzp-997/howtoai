@@ -99,7 +99,7 @@ export const useUserStore = defineStore("user", {
           throw new Error('登录失败');
         }
 
-        const { token, refreshToken, user, passwordExpiry } = res.data;
+        const { accessToken: token, refreshToken, user, passwordExpiry } = res.data;
 
         // 验证角色是否匹配
         if (user.role !== role) {

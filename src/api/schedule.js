@@ -1,346 +1,195 @@
 /**
- * 会议智能调度API模块
- * 对应后端接口: /api/v1/meetings/*
+ * 会议智能调度 API模块
+ * 对应后端接口:
+ * - /api/v1/reservations/* - 会议预定
+ * 注意：会议室基础接口已在 meeting-rooms.js 中定义
  */
+import { request } from '@/utils/request';
 
-// 获取会议室列表
-export function getMeetingRooms(params) {
-  return mockRequest({
-    url: '/api/v1/meetings/rooms',
-    method: 'get',
-    params
-  })
-}
+// ==================== 会议预定接口 ====================
 
-// 获取会议室详情
-export function getMeetingRoom(id) {
-  return mockRequest({
-    url: `/api/v1/meetings/rooms/${id}`,
-    method: 'get'
-  })
-}
-
-// 创建会议室
-export function createMeetingRoom(data) {
-  return mockRequest({
-    url: '/api/v1/meetings/rooms',
-    method: 'post',
-    data
-  })
-}
-
-// 更新会议室
-export function updateMeetingRoom(id, data) {
-  return mockRequest({
-    url: `/api/v1/meetings/rooms/${id}`,
-    method: 'put',
-    data
-  })
-}
-
-// 删除会议室
-export function deleteMeetingRoom(id) {
-  return mockRequest({
-    url: `/api/v1/meetings/rooms/${id}`,
-    method: 'delete'
-  })
-}
-
-// 智能推荐会议室
+/**
+ * 智能推荐会议室
+ * @param {Object} data - 推荐参数
+ * @param {number} data.capacity - 参会人数
+ * @param {string} data.startTime - 开始时间
+ * @param {string} data.endTime - 结束时间
+ * @param {Array<string>} data.equipment - 需要的设备
+ * @returns {Promise}
+ */
 export function recommendMeetingRooms(data) {
-  return mockRequest({
-    url: '/api/v1/meetings/recommend',
-    method: 'post',
-    data
-  })
+  // 后端暂无智能推荐接口，暂用会议室列表代替
+  return request.get({
+    url: '/v1/meeting-rooms',
+    params: { min_capacity: data.capacity },
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 查询可用时段
-export function getAvailableSlots(params) {
-  return mockRequest({
-    url: '/api/v1/meetings/available',
-    method: 'get',
-    params
-  })
+/**
+ * 查询可用时段
+ * @param {Object} params - 查询参数
+ * @param {number} params.roomId - 会议室ID
+ * @param {string} params.date - 日期
+ * @returns {Promise}
+ */
+export function getAvailableSlots(params = {}) {
+  // 后端暂无可用时段查询接口
+  return request.get({
+    url: '/v1/reservations',
+    params: { room_id: params.roomId },
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 检测会议室冲突
-export function checkConflict(params) {
-  return mockRequest({
-    url: '/api/v1/meetings/check-conflict',
-    method: 'post',
-    data: params
-  })
+/**
+ * 检测会议室冲突
+ * @param {Object} data - 冲突检测参数
+ * @param {number} data.roomId - 会议室ID
+ * @param {string} data.startTime - 开始时间
+ * @param {string} data.endTime - 结束时间
+ * @returns {Promise}
+ */
+export function checkConflict(data) {
+  return request.post({
+    url: '/v1/reservations/check-conflict',
+    data: {
+      room_id: data.roomId,
+      start_time: data.startTime,
+      end_time: data.endTime,
+    },
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 创建会议预约
+/**
+ * 创建会议预约
+ * @param {Object} data - 预定数据
+ * @returns {Promise}
+ */
 export function createMeeting(data) {
-  return mockRequest({
-    url: '/api/v1/meetings',
-    method: 'post',
-    data
-  })
+  return request.post({
+    url: '/v1/reservations',
+    data,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 获取我的会议列表
-export function getMyMeetings(params) {
-  return mockRequest({
-    url: '/api/v1/meetings/my',
-    method: 'get',
-    params
-  })
+/**
+ * 获取我的会议列表
+ * @param {Object} params - 查询参数
+ * @param {number} params.roomId - 会议室ID（可选）
+ * @returns {Promise}
+ */
+export function getMyMeetings(params = {}) {
+  return request.get({
+    url: '/v1/reservations/my',
+    params,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 获取会议详情
+/**
+ * 获取会议详情
+ * @param {number} id - 预定ID
+ * @returns {Promise}
+ */
 export function getMeetingDetail(id) {
-  return mockRequest({
-    url: `/api/v1/meetings/${id}`,
-    method: 'get'
-  })
+  return request.get({
+    url: `/v1/reservations/${id}`,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 更新会议预约
+/**
+ * 更新会议预约
+ * @param {number} id - 预定ID
+ * @param {Object} data - 更新数据
+ * @returns {Promise}
+ */
 export function updateMeeting(id, data) {
-  return mockRequest({
-    url: `/api/v1/meetings/${id}`,
-    method: 'put',
-    data
-  })
+  return request.put({
+    url: `/v1/reservations/${id}`,
+    data,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 取消会议预约
+/**
+ * 取消会议预约
+ * @param {number} id - 预定ID
+ * @returns {Promise}
+ */
 export function cancelMeeting(id) {
-  return mockRequest({
-    url: `/api/v1/meetings/${id}/cancel`,
-    method: 'post'
-  })
+  return request.delete({
+    url: `/v1/reservations/${id}`,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 获取会议室使用情况（日视图）
-export function getRoomDayView(params) {
-  return mockRequest({
-    url: '/api/v1/meetings/room-day-view',
-    method: 'get',
-    params
-  })
+/**
+ * 获取会议室使用情况（日视图）
+ * @param {Object} params - 查询参数
+ * @param {number} params.roomId - 会议室ID
+ * @param {string} params.date - 日期
+ * @returns {Promise}
+ */
+export function getRoomDayView(params = {}) {
+  return request.get({
+    url: '/v1/reservations',
+    params: { room_id: params.roomId },
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 获取会议室使用情况（周视图）
-export function getRoomWeekView(params) {
-  return mockRequest({
-    url: '/api/v1/meetings/room-week-view',
-    method: 'get',
-    params
-  })
+/**
+ * 获取会议室使用情况（周视图）
+ * @param {Object} params - 查询参数
+ * @param {number} params.roomId - 会议室ID
+ * @param {string} params.startDate - 开始日期
+ * @param {string} params.endDate - 结束日期
+ * @returns {Promise}
+ */
+export function getRoomWeekView(params = {}) {
+  return request.get({
+    url: '/v1/reservations',
+    params: { room_id: params.roomId },
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 模拟请求函数
-function mockRequest(config) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ data: generateMockData(config) })
-    }, 300)
-  })
-}
-
-function generateMockData(config) {
-  const { url, method } = config
-
-  if (url.includes('rooms')) {
-    return mockRooms()
-  }
-  if (url.includes('recommend')) {
-    return mockRecommendations()
-  }
-  if (url.includes('available')) {
-    return mockAvailableSlots()
-  }
-  if (url.includes('check-conflict')) {
-    return mockConflictCheck()
-  }
-  if (url.includes('my')) {
-    return mockMyMeetings()
-  }
-  if (url.includes('day-view')) {
-    return mockDayView()
-  }
-  if (url.includes('week-view')) {
-    return mockWeekView()
-  }
-
-  return {}
-}
-
-function mockRooms() {
-  return {
-    list: [
-      {
-        id: 1,
-        name: '第一会议室',
-        floor: '1楼',
-        capacity: 10,
-        equipment: ['projector', 'whiteboard', 'video_conference'],
-        roomType: 'medium',
-        status: 'normal'
-      },
-      {
-        id: 2,
-        name: '第二会议室',
-        floor: '1楼',
-        capacity: 6,
-        equipment: ['projector', 'whiteboard'],
-        roomType: 'small',
-        status: 'normal'
-      },
-      {
-        id: 3,
-        name: '第三会议室',
-        floor: '2楼',
-        capacity: 20,
-        equipment: ['projector', 'whiteboard', 'video_conference', 'microphone'],
-        roomType: 'large',
-        status: 'normal'
-      },
-      {
-        id: 4,
-        name: 'VIP会议室',
-        floor: '3楼',
-        capacity: 8,
-        equipment: ['projector', 'whiteboard', 'video_conference', 'microphone'],
-        roomType: 'vip',
-        status: 'normal'
-      }
-    ],
-    total: 4
-  }
-}
-
-function mockRecommendations() {
-  return {
-    recommendations: [
-      {
-        room: {
-          id: 1,
-          name: '第一会议室',
-          floor: '1楼',
-          capacity: 10,
-          equipment: ['projector', 'whiteboard', 'video_conference']
-        },
-        score: 95,
-        reasons: ['容量合适', '设备齐全', '距离最近'],
-        availableSlots: [
-          { start: '09:00', end: '10:00', available: true },
-          { start: '10:00', end: '11:00', available: true },
-          { start: '14:00', end: '15:00', available: true },
-          { start: '15:00', end: '16:00', available: false }
-        ]
-      },
-      {
-        room: {
-          id: 2,
-          name: '第二会议室',
-          floor: '1楼',
-          capacity: 6,
-          equipment: ['projector', 'whiteboard']
-        },
-        score: 85,
-        reasons: ['容量合适', '空闲时间多'],
-        availableSlots: [
-          { start: '09:00', end: '10:00', available: true },
-          { start: '10:00', end: '11:00', available: true },
-          { start: '11:00', end: '12:00', available: true },
-          { start: '14:00', end: '15:00', available: true }
-        ]
-      }
-    ]
-  }
-}
-
-function mockAvailableSlots() {
-  return {
-    date: '2026-04-30',
-    roomId: 1,
-    slots: [
-      { start: '09:00', end: '10:00', available: true },
-      { start: '10:00', end: '11:00', available: false, meeting: '部门例会' },
-      { start: '11:00', end: '12:00', available: true },
-      { start: '14:00', end: '15:00', available: true },
-      { start: '15:00', end: '16:00', available: false, meeting: '项目评审' },
-      { start: '16:00', end: '17:00', available: true }
-    ]
-  }
-}
-
-function mockConflictCheck() {
-  return {
-    hasConflict: false,
-    conflictWith: null
-  }
-}
-
-function mockMyMeetings() {
-  return {
-    list: [
-      {
-        id: 1,
-        title: '部门周例会',
-        roomName: '第一会议室',
-        startTime: '2026-04-30 10:00',
-        endTime: '2026-04-30 11:00',
-        status: 'scheduled',
-        attendees: ['张三', '李四', '王五']
-      },
-      {
-        id: 2,
-        title: '项目评审会',
-        roomName: '第三会议室',
-        startTime: '2026-04-30 15:00',
-        endTime: '2026-04-30 16:30',
-        status: 'scheduled',
-        attendees: ['产品经理', '开发', '测试']
-      }
-    ],
-    total: 2
-  }
-}
-
-function mockDayView() {
-  return {
-    date: '2026-04-30',
-    roomId: 1,
-    bookings: [
-      { start: '10:00', end: '11:00', title: '部门例会', organizer: '张三' },
-      { start: '14:00', end: '15:30', title: '需求评审', organizer: '李四' },
-      { start: '16:00', end: '17:00', title: '周报会议', organizer: '王五' }
-    ]
-  }
-}
-
-function mockWeekView() {
-  return {
-    weekStart: '2026-04-28',
-    roomId: 1,
-    days: [
-      {
-        date: '2026-04-28',
-        bookings: [
-          { start: '10:00', end: '11:00', title: '部门例会' }
-        ]
-      },
-      {
-        date: '2026-04-29',
-        bookings: [
-          { start: '14:00', end: '15:00', title: '项目评审' },
-          { start: '16:00', end: '17:00', title: '周报会议' }
-        ]
-      },
-      {
-        date: '2026-04-30',
-        bookings: [
-          { start: '10:00', end: '11:00', title: '部门例会' },
-          { start: '15:00', end: '16:30', title: '需求评审' }
-        ]
-      }
-    ]
-  }
-}
+export default {
+  // 智能调度
+  recommendMeetingRooms,
+  getAvailableSlots,
+  checkConflict,
+  // 会议预定
+  createMeeting,
+  getMyMeetings,
+  getMeetingDetail,
+  updateMeeting,
+  cancelMeeting,
+  // 使用情况
+  getRoomDayView,
+  getRoomWeekView,
+};

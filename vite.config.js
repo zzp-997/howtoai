@@ -1,6 +1,7 @@
 import path from "node:path";
 import { loadEnv } from "vite";
 import vue from "@vitejs/plugin-vue";
+import vueJsx from "@vitejs/plugin-vue-jsx";
 import tailwindcss from "tailwindcss";
 import autoprefixer from "autoprefixer";
 import postcssPxToViewport from "postcss-px-to-viewport";
@@ -93,6 +94,7 @@ export default ({ mode }) => {
     },
     plugins: [
       vue(),
+      vueJsx(),
       AutoImport({
         resolvers: [
           TDesignResolver({

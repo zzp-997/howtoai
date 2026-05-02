@@ -2,217 +2,234 @@
  * 知识库API模块
  * 对应后端接口: /api/v1/knowledge/*
  */
+import { request } from '@/utils/request';
 
-// 获取知识分类列表
-export function getKnowledgeCategories() {
-  return mockRequest({
-    url: '/api/v1/knowledge/categories',
-    method: 'get'
-  })
+/**
+ * 获取知识分类列表
+ * @param {Object} params - 查询参数
+ * @param {number} params.parentId - 父分类ID
+ * @returns {Promise}
+ */
+export function getKnowledgeCategories(params = {}) {
+  return request.get({
+    url: '/v1/knowledge/categories',
+    params,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 创建知识分类
+/**
+ * 创建知识分类
+ * @param {Object} data - 分类数据
+ * @param {string} data.name - 分类名称
+ * @param {number} data.parentId - 父分类ID
+ * @returns {Promise}
+ */
 export function createCategory(data) {
-  return mockRequest({
-    url: '/api/v1/knowledge/categories',
-    method: 'post',
-    data
-  })
+  return request.post({
+    url: '/v1/knowledge/categories',
+    data,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 更新知识分类
+/**
+ * 更新知识分类
+ * @param {number} id - 分类ID
+ * @param {Object} data - 更新数据
+ * @returns {Promise}
+ */
 export function updateCategory(id, data) {
-  return mockRequest({
-    url: `/api/v1/knowledge/categories/${id}`,
-    method: 'put',
-    data
-  })
+  return request.put({
+    url: `/v1/knowledge/categories/${id}`,
+    data,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 删除知识分类
+/**
+ * 删除知识分类
+ * @param {number} id - 分类ID
+ * @returns {Promise}
+ */
 export function deleteCategory(id) {
-  return mockRequest({
-    url: `/api/v1/knowledge/categories/${id}`,
-    method: 'delete'
-  })
+  return request.delete({
+    url: `/v1/knowledge/categories/${id}`,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 获取知识文章列表
-export function getKnowledgeArticles(params) {
-  return mockRequest({
-    url: '/api/v1/knowledge/articles',
-    method: 'get',
-    params
-  })
+/**
+ * 获取知识文章列表
+ * @param {Object} params - 查询参数
+ * @param {number} params.categoryId - 分类ID
+ * @param {string} params.status - 状态
+ * @param {number} params.authorId - 作者ID
+ * @param {string} params.keyword - 搜索关键词
+ * @param {number} params.page - 页码
+ * @param {number} params.pageSize - 每页数量
+ * @returns {Promise}
+ */
+export function getKnowledgeArticles(params = {}) {
+  return request.get({
+    url: '/v1/knowledge/articles',
+    params,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 获取知识文章详情
+/**
+ * 获取知识文章详情
+ * @param {number} id - 文章ID
+ * @returns {Promise}
+ */
 export function getKnowledgeArticle(id) {
-  return mockRequest({
-    url: `/api/v1/knowledge/articles/${id}`,
-    method: 'get'
-  })
+  return request.get({
+    url: `/v1/knowledge/articles/${id}`,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 创建知识文章
+/**
+ * 创建知识文章
+ * @param {Object} data - 文章数据
+ * @param {string} data.title - 文章标题
+ * @param {string} data.content - 文章内容
+ * @param {string} data.summary - 文章摘要
+ * @param {number} data.categoryId - 分类ID
+ * @param {Array} data.tags - 标签
+ * @returns {Promise}
+ */
 export function createKnowledgeArticle(data) {
-  return mockRequest({
-    url: '/api/v1/knowledge/articles',
-    method: 'post',
-    data
-  })
+  return request.post({
+    url: '/v1/knowledge/articles',
+    data,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 更新知识文章
+/**
+ * 更新知识文章
+ * @param {number} id - 文章ID
+ * @param {Object} data - 更新数据
+ * @returns {Promise}
+ */
 export function updateKnowledgeArticle(id, data) {
-  return mockRequest({
-    url: `/api/v1/knowledge/articles/${id}`,
-    method: 'put',
-    data
-  })
+  return request.put({
+    url: `/v1/knowledge/articles/${id}`,
+    data,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 删除知识文章
+/**
+ * 删除知识文章
+ * @param {number} id - 文章ID
+ * @returns {Promise}
+ */
 export function deleteKnowledgeArticle(id) {
-  return mockRequest({
-    url: `/api/v1/knowledge/articles/${id}`,
-    method: 'delete'
-  })
+  return request.delete({
+    url: `/v1/knowledge/articles/${id}`,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 搜索知识库
-export function searchKnowledge(params) {
-  return mockRequest({
-    url: '/api/v1/knowledge/search',
-    method: 'get',
-    params
-  })
+/**
+ * 搜索知识库
+ * @param {Object} params - 搜索参数
+ * @param {string} params.keyword - 搜索关键词
+ * @param {number} params.categoryId - 分类ID
+ * @param {number} params.page - 页码
+ * @param {number} params.pageSize - 每页数量
+ * @returns {Promise}
+ */
+export function searchKnowledge(params = {}) {
+  return request.get({
+    url: '/v1/knowledge/search',
+    params,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 点赞知识文章
+/**
+ * 点赞知识文章
+ * @param {number} id - 文章ID
+ * @returns {Promise}
+ */
 export function likeKnowledgeArticle(id) {
-  return mockRequest({
-    url: `/api/v1/knowledge/articles/${id}/like`,
-    method: 'post'
-  })
+  return request.post({
+    url: `/v1/knowledge/articles/${id}/like`,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 阅读知识文章（记录阅读）
-export function viewKnowledgeArticle(id) {
-  return mockRequest({
-    url: `/api/v1/knowledge/articles/${id}/view`,
-    method: 'post'
-  })
+/**
+ * 阅读知识文章（记录阅读）
+ * @param {number} id - 文章ID
+ * @param {number} readDuration - 阅读时长(秒)
+ * @returns {Promise}
+ */
+export function viewKnowledgeArticle(id, readDuration = 0) {
+  return request.post({
+    url: `/v1/knowledge/articles/${id}/view`,
+    params: { readDuration },
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 获取我的知识文章
-export function getMyArticles() {
-  return mockRequest({
-    url: '/api/v1/knowledge/my-articles',
-    method: 'get'
-  })
+/**
+ * 获取我的知识文章
+ * @param {Object} params - 查询参数
+ * @param {number} params.page - 页码
+ * @param {number} params.pageSize - 每页数量
+ * @returns {Promise}
+ */
+export function getMyArticles(params = {}) {
+  return request.get({
+    url: '/v1/knowledge/my-articles',
+    params,
+  }, {
+    isJoinPrefix: true,
+    isTransformResponse: false
+  });
 }
 
-// 模拟请求函数
-function mockRequest(config) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ data: generateMockData(config) })
-    }, 300)
-  })
-}
-
-function generateMockData(config) {
-  const { url, method } = config
-
-  if (url.includes('categories')) {
-    return mockCategories()
-  }
-  if (url.includes('articles')) {
-    return mockArticles()
-  }
-  if (url.includes('search')) {
-    return mockSearchResults()
-  }
-
-  return {}
-}
-
-function mockCategories() {
-  return {
-    list: [
-      { id: 1, name: '公司制度', parentId: null, level: 1, sortOrder: 1, children: [
-        { id: 11, name: '员工手册', parentId: 1, level: 2, sortOrder: 1 },
-        { id: 12, name: '行政规范', parentId: 1, level: 2, sortOrder: 2 },
-        { id: 13, name: '财务制度', parentId: 1, level: 2, sortOrder: 3 }
-      ]},
-      { id: 2, name: '技术文档', parentId: null, level: 1, sortOrder: 2, children: [
-        { id: 21, name: '开发规范', parentId: 2, level: 2, sortOrder: 1 },
-        { id: 22, name: 'API文档', parentId: 2, level: 2, sortOrder: 2 },
-        { id: 23, name: '产品文档', parentId: 2, level: 2, sortOrder: 3 }
-      ]},
-      { id: 3, name: '常见问题', parentId: null, level: 1, sortOrder: 3 },
-      { id: 4, name: '培训资料', parentId: null, level: 1, sortOrder: 4 }
-    ]
-  }
-}
-
-function mockArticles() {
-  return {
-    list: [
-      {
-        id: 1,
-        title: '员工考勤管理制度',
-        summary: '本文详细说明了公司考勤管理制度，包括上班时间、请假流程、迟到早退处理等...',
-        categoryId: 11,
-        categoryName: '员工手册',
-        authorId: 1,
-        authorName: '管理员',
-        tags: ['考勤', '制度', '员工'],
-        viewCount: 156,
-        likeCount: 23,
-        commentCount: 5,
-        status: 'published',
-        publishedAt: '2026-04-15 10:00:00',
-        createdAt: '2026-04-10 09:30:00'
-      },
-      {
-        id: 2,
-        title: '会议室预订指南',
-        summary: '详细介绍如何预订会议室，包括预订规则、使用流程、取消预约等...',
-        categoryId: 21,
-        categoryName: '开发规范',
-        authorId: 2,
-        authorName: '张三',
-        tags: ['会议室', '预订', '指南'],
-        viewCount: 89,
-        likeCount: 12,
-        commentCount: 3,
-        status: 'published',
-        publishedAt: '2026-04-18 14:00:00',
-        createdAt: '2026-04-16 11:20:00'
-      }
-    ],
-    total: 2,
-    page: 1,
-    pageSize: 10
-  }
-}
-
-function mockSearchResults() {
-  return {
-    list: [
-      {
-        id: 1,
-        title: '员工考勤管理制度',
-        summary: '本文详细说明了公司考勤管理制度...',
-        categoryName: '员工手册',
-        authorName: '管理员',
-        viewCount: 156,
-        publishedAt: '2026-04-15'
-      }
-    ],
-    total: 1,
-    highlight: '员工<em>考勤</em>管理制度'
-  }
-}
+export default {
+  getKnowledgeCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  getKnowledgeArticles,
+  getKnowledgeArticle,
+  createKnowledgeArticle,
+  updateKnowledgeArticle,
+  deleteKnowledgeArticle,
+  searchKnowledge,
+  likeKnowledgeArticle,
+  viewKnowledgeArticle,
+  getMyArticles,
+};
