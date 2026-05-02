@@ -266,6 +266,6 @@ export const useUserStore = defineStore("user", {
   },
   persist: {
     key: 'office_user',
-    pick: ['userInfo', 'role', 'token', 'refreshToken', 'isLoggedIn']
+    paths: ['userInfo', 'role', 'token', 'refreshToken', 'isLoggedIn']
   }
 });

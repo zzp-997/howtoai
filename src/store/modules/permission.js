@@ -34,7 +34,7 @@ export const usePermissionStore = defineStore("permission", {
   },
   persist: {
     key: 'permission',
-    pick: ['whiteListRouters']
+    paths: ['whiteListRouters']
   },
 });
 

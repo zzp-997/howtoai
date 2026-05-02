@@ -118,6 +118,6 @@ export const useSettingsStore = defineStore("settings", {
   },
   persist: {
     key: 'office_settings',
-    pick: ['theme', 'fontSize', 'compactMode', 'vibration', 'defaultPage']
+    paths: ['theme', 'fontSize', 'compactMode', 'vibration', 'defaultPage']
   }
 });

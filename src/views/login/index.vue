@@ -404,7 +404,10 @@ const handleLogin = async () => {
  * @param {Object} passwordExpiry - 密码过期信息
  */
 const handlePasswordExpiry = (passwordExpiry) => {
-  const { isExpired, daysRemaining, isExpiringSoon } = passwordExpiry
+  // 兼容后端返回的字段名（expired 或 isExpired）
+  const isExpired = passwordExpiry.isExpired ?? passwordExpiry.expired
+  const { daysRemaining, expiringSoon } = passwordExpiry
+  const isExpiringSoon = expiringSoon ?? passwordExpiry.expiring_soon
 
   // 密码已过期，必须修改
   if (isExpired) {
