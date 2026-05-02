@@ -9,6 +9,7 @@ import router from '@/router';
 import { VAxios } from './Axios';
 import { formatRequestDate, joinTimestamp, setObjToUrlParams } from './utils';
 import { showToast } from '../common/tools';
+import { getErrorMsg, isAuthError } from '../common/errors';
 import { Dialog } from 'tdesign-mobile-vue';
 
 /**
@@ -127,7 +128,18 @@ const transform = {
       }
     }
 
-    throw new ValidationError(data.message || `请求接口错误, 错误码: ${code}`, data.code || 500);
+    // 认证类错误（20001/20002）→ 自动登出 + 跳转登录页
+    if (isAuthError(data.code)) {
+      const msg = getErrorMsg(data.code, data.message)
+      const userStore = useUserStore()
+      userStore.logout()
+      router.push('/login')
+      showToast(msg)
+      return null
+    }
+
+    const msg = getErrorMsg(data.code, data.message)
+    throw new ValidationError(msg, data.code)
   },
 
   // 请求前处理配置

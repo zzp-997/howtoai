@@ -19,6 +19,7 @@ import root from '@/components/root.vue';
 import { store } from './store';
 import { setupGlobDirectives } from '@/directives';
 import { useSettingsStore } from '@/store/modules/settings';
+import { setupGlobalErrorHandler } from '@/utils/common/errors';
 
 // Mock 数据 - 已禁用，使用后端 API
 
@@ -30,6 +31,7 @@ async function bootstrap() {
   app.use(store);
   app.component('Root', root);
   setupGlobDirectives(app);
+  setupGlobalErrorHandler(app);
 
   // 初始化设置（主题、字体大小等）
   const settingsStore = useSettingsStore();
