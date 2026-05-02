@@ -140,11 +140,10 @@ import {
   likeKnowledgeArticle,
   viewKnowledgeArticle
 } from '@/api/knowledge';
-import { useMessage } from 'tdesign-vue-next';
+import { showToast } from '@/utils/common/tools';
 
 const router = useRouter();
 const route = useRoute();
-const message = useMessage();
 
 // 数据
 const loading = ref(false);
@@ -171,11 +170,11 @@ const handleEdit = () => {
 };
 
 const handleShare = () => {
-  message.success('分享链接已复制');
+  showToast('分享链接已复制');
 };
 
 const handleDelete = () => {
-  message.warning('确定要删除这篇文章吗？');
+  showToast('确定要删除这篇文章吗？');
 };
 
 const handleLike = async () => {
@@ -194,7 +193,7 @@ const handleComment = async () => {
   if (!commentContent.value.trim()) return;
   console.log('发表评论:', commentContent.value);
   commentContent.value = '';
-  message.success('评论发表成功');
+  showToast('评论发表成功');
 };
 
 const loadArticle = async () => {
